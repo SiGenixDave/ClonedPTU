@@ -90,7 +90,7 @@
  *                                      
  * 
  *  02/18/2019  1.2    R. Schwartz      Modifications
- *                                      1. Added logic to correctly display the 4 digit year based on a 2 digit year code for older projects.
+ *                                      1. Added logic to correctly display the 4 digit year based on a 2 digit year code.
  */
 #endregion - [1.2] -
 #endregion --- Revision History ---
