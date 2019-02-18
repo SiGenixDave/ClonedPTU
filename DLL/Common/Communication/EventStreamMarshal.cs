@@ -87,6 +87,10 @@
  *                                          the Least Significant Byte. Byte[7] is a pad/spare byte in a 4 digit year code timestamp. 
  *                                          
  *                                      2. Added another VerifyDate function to support 4 digit year codes and the valid range check.
+ *                                      
+ * 
+ *  02/18/2019  1.2    R. Schwartz      Modifications
+ *                                      1. Added logic to correctly display the 4 digit year based on a 2 digit year code for older projects.
  */
 #endregion - [1.2] -
 #endregion --- Revision History ---
