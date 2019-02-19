@@ -87,10 +87,6 @@
  *                                          the Least Significant Byte. Byte[7] is a pad/spare byte in a 4 digit year code timestamp. 
  *                                          
  *                                      2. Added another VerifyDate function to support 4 digit year codes and the valid range check.
- *                                      
- * 
- *  02/18/2019  1.2    R. Schwartz      Modifications
- *                                      1. Added logic to correctly display the 4 digit year based on a 2 digit year code.
  */
 #endregion - [1.2] -
 #endregion --- Revision History ---
@@ -257,7 +253,7 @@ namespace Common.Communication
                 {
                     MaxEventsPerTask = MAX_EVENTS_PER_TASK - 1;
                 }
-
+            
             }
 
             return commError;
@@ -339,7 +335,7 @@ namespace Common.Communication
 
                 // Get the newest fault information
                 commError = GetFaultData((UInt32)(FaultIndex % 65536), (UInt16)newEventsLogged);
-
+                
                 // Verify the transaction was successful and that at least one fault was returned
                 if (commError != CommunicationError.Success)
                 {
@@ -376,9 +372,9 @@ namespace Common.Communication
 
                             // Add new member with size "FaultSize" to jagged 2 dimensional array (the "FaultSize" is also part of the fault data;
                             // thus the + 2)
-                            m_FaultStorage.Add(tempFaultBuffer);
+                            m_FaultStorage.Add(tempFaultBuffer);                        
                         }
-                        catch
+                        catch 
                         {
                             return CommunicationError.SystemException;
                         }
@@ -401,7 +397,7 @@ namespace Common.Communication
                     m_FaultStorage.RemoveAt(0);
                     m_CurrentNumberOfFaults--;
                 }
-
+            
             } while (false);
 
             // Enable Fault Logging here in case we left the while loop early
@@ -560,7 +556,6 @@ namespace Common.Communication
 
             UInt16 fourDigitYear = 0;
             Byte twoDigitYear = 0;
-            String newYearCode = "";                                    //Set up new String variable for 2 digit year code                         
 
             if (Use4DigitYearCode)
             {
@@ -568,22 +563,7 @@ namespace Common.Communication
             }
             else
             {
-                //old code
-                twoDigitYear = m_FaultStorage[index][DATE_OFFSET_IN_FAULT_LOG + 5];         //Get the raw data from the table
-                //New code
-                String str1 = twoDigitYear.ToString("D4");          //Get the 4 digit year (e.g. 2066) into a string
-                String str2 = str1.Substring(2, 2);                 //Get the last two digits of the year (e.g. 66)                      
-                int parsing = Int32.Parse(str2);                    //set up parsing variable to get to int type for comparison
-                if (parsing > 0 && parsing < 70)                    //Do comparison to set correct date for 2 digit code                
-                {
-                    newYearCode = "20" + str2;                      //append the correct prefix to the last two digits
-                }                                                   //if conditions are not met then 19 is the designated prefix
-                else
-                {
-                    newYearCode = "19" + str2;                      //Append a 19 if the conditions aren't met
-
-                }
-
+                twoDigitYear = m_FaultStorage[index][DATE_OFFSET_IN_FAULT_LOG + 5];
             }
 
             if (m_CommDevice.IsTargetBigEndian())
@@ -631,12 +611,7 @@ namespace Common.Communication
                 // Check Date
                 if (VerifyDate(month, day, twoDigitYear))
                 {
-                    //Old Code
-                    //Fltdate = month.ToString("D2") + "/" + day.ToString("D2") + "/" + twoDigitYear.ToString("D2");
-
-                    //New Code- append the newYearCode string to the Fltdate String
-                    Fltdate = month.ToString("D2") + "/" + day.ToString("D2") + "/" + newYearCode;
-
+                    Fltdate = month.ToString("D2") + "/" + day.ToString("D2") + "/" + twoDigitYear.ToString("D2");
                 }
                 else
                 {
@@ -1183,7 +1158,7 @@ namespace Common.Communication
                         // Allocate jagged array dynamically and store fault data there
                         if (faultSize < MAX_FAULT_SIZE_BYTES && faultSize > 0)
                         {
-                            Byte[] tempFaultBufffer = new Byte[faultSize + 2];
+                            Byte[] tempFaultBufffer = new Byte[faultSize + 2]; 
 
                             // Copy all data into newly created array
                             Buffer.BlockCopy(m_FaultDataFromTarget.Buffer, index, tempFaultBufffer, 0, faultSize + 2);
