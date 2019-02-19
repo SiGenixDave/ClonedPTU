@@ -10,5 +10,3 @@ Created by Rob Schwartz on 2/18/19
 Date				Change Made
 
 2/18/19				Updated EventStreamMarshal.cs
-
-On Rob's computer
