@@ -13,4 +13,6 @@ Date				Change Made
 
 2/18/19				Updated EventStreamMarshal.cs
 
+Working on XML event log issue
+
 
