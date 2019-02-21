@@ -77,7 +77,7 @@ using System.Runtime.InteropServices;
 // associated with an assembly.
 [assembly: AssemblyCompany("Bombardier Transportation (Holdings) USA Inc.")]
 [assembly: AssemblyProduct("Portable Test Application")]
-[assembly: AssemblyCopyright("Copyright © 2019 - Bombardier Transportation (Holdings) USA Inc.")]
+[assembly: AssemblyCopyright("Copyright © 2013 - Bombardier Transportation (Holdings) USA Inc.")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 [assembly: NeutralResourcesLanguageAttribute("")]
