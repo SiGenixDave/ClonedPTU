@@ -100,7 +100,12 @@ namespace FTPDownloadRTDM
             /// <summary>
             /// See description in 071-ICD-004 for details
             /// </summary>
-            public uint Reserved;
+            public ushort NumberOfCounters;
+
+            /// <summary>
+            /// See description in 071-ICD-004 for details
+            /// </summary>
+            public ushort Reserved;
         }
 
         /// <summary>
@@ -296,7 +301,8 @@ namespace FTPDownloadRTDM
             m_Header.LastRecordIndex = binFile.ReadInt16();
             m_Header.TimeOfLastReset = binFile.ReadUInt32();
             m_Header.ReasonForReset = binFile.ReadByte();
-            m_Header.Reserved = binFile.ReadUInt32();
+            m_Header.NumberOfCounters = binFile.ReadUInt16();
+            m_Header.Reserved = binFile.ReadUInt16(); 
 #if !FILE_READ_FROM_PC
             m_Header.SystemId = Utils.ReverseByteOrder(m_Header.SystemId);
             m_Header.NumberOfRecords = Utils.ReverseByteOrder(m_Header.NumberOfRecords);
@@ -304,6 +310,7 @@ namespace FTPDownloadRTDM
             m_Header.LastRecordIndex = Utils.ReverseByteOrder(m_Header.LastRecordIndex);
             m_Header.TimeOfLastReset = Utils.ReverseByteOrder(m_Header.TimeOfLastReset);
             m_Header.ReasonForReset = Utils.ReverseByteOrder(m_Header.ReasonForReset);
+            m_Header.NumberOfCounters = Utils.ReverseByteOrder(m_Header.NumberOfCounters);
             m_Header.Reserved = Utils.ReverseByteOrder(m_Header.Reserved);
 #endif
         }
