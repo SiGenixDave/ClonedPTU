@@ -505,6 +505,12 @@
  *                                  3.  Enable Splash screen for the 300R Project.
  *  12/21/2018     1.29.5   Vgott   Modifications
  *                                  1.  MAPA update: Enable Menu Items to set CarID and Realtime clock in Engineering and Factory level.
+ *                                  
+ *  03/28/2019     1.29.6   Vgott   Modifications
+ *                                  1. Added Display Splash screen flag and Removed project specific condition.
+ *                                  2. Added PTE display flag and Removed project specific to display as PTE.
+ *                                  3. Updated display of Project title in PTU from configuration file using DDB file info.
+ *                                  4. Removed control panel menu options by project specification
  */
 #endregion
 
@@ -809,20 +815,17 @@ namespace Bombardier.PTU
 			LoadHelpFile(Parameter.ProjectInformation.Version, Parameter.ProjectInformation.ProjectIdentifier);
 
             // If applicable to the current project, show the splash screen.
-            switch (m_ProjectIdentifierPassedAsParameter)
+            switch (Parameter.isDisplaySplashScreen)
             {
-                case CommonConstants.ProjectIdNYCT:
-                case CommonConstants.ProjectIdR179:
-                case CommonConstants.ProjectIdPAQA:
-                case CommonConstants.ProjectIdMAPA:               
-                    // Do not show the splash screen for the R188 project.
-                    break;
-                default:
+                case true:
                     // Show the splash screen.
-                    using (FormHelpAbout formHelpAbout = new FormHelpAbout(Resources.ProductNamePTU))
+                    using (FormHelpAbout formHelpAbout = new FormHelpAbout(((Parameter.isDisplayPTE) ? Resources.ProductNamePTE : Resources.ProductNamePTU)))
                     {
                         formHelpAbout.ShowDialog();
                     }
+                    break;
+                default:                    
+                    // Do not show the splash screen for the project.
                     break;
             }
         }
@@ -842,13 +845,9 @@ namespace Bombardier.PTU
             {
                 case "":
                     productName = Application.ProductName;
-                    break;
-                case CommonConstants.ProjectIdNYCT:
-                case CommonConstants.ProjectIdR179:
-                    productName = Resources.ProductNamePTE;
-                    break;
+                    break;                
                 default:
-                    productName = Resources.ProductNamePTU;
+                    productName = ((Parameter.isDisplayPTE) ? Resources.ProductNamePTE : Resources.ProductNamePTU);
                     break;
             }
 
@@ -1055,81 +1054,39 @@ namespace Bombardier.PTU
             }
             #endregion - [WibuBox] -
 
-            #region - [Project Specific Control Panel] -
-            // The NYCT project uses a Control Panel to activate the various menu options.
-            switch (projectIdentifier)
+           #region - [Control Panel update from XML configuratuion file] -
+            m_ControlPanel = new ControlPanel();
+            m_ControlPanel.Dock = DockStyle.Left;
+            m_ControlPanel.Parent = this;
+            m_ControlPanel.TabStop = false;
+            m_ControlPanel.TabIndex = 0;
+            m_ControlPanel.Name = CommonConstants.KeyControlPanel;
+            m_ControlPanel.ProjectIdentifier = projectIdentifier;
+            m_ControlPanel.ControlPanelTitle = FileHeader.HeaderCurrent.ProjectInformation.DataDictionaryName;
+            if (m_MenuInterfaceApplication.WibuBoxCheckIfRequired(projectIdentifier) == true)
             {
-                case CommonConstants.ProjectIdNYCT:
-                case CommonConstants.ProjectIdR179:
-                case CommonConstants.ProjectIdBART:
-                case CommonConstants.ProjectIdRocket:
-                case CommonConstants.ProjectIdPAQA:
-                case CommonConstants.ProjectIdMAPA:
-                case CommonConstants.ProjectIdAPM:
-                    m_ControlPanel = new ControlPanel();
-                    m_ControlPanel.Dock = DockStyle.Left;
-                    m_ControlPanel.Parent = this;
-                    m_ControlPanel.TabStop = false;
-                    m_ControlPanel.TabIndex = 0;
-                    m_ControlPanel.Name = CommonConstants.KeyControlPanel;
-                    m_ControlPanel.ProjectIdentifier = projectIdentifier;
-
-                    switch (projectIdentifier)
-                    {
-                        case CommonConstants.ProjectIdNYCT:
-                            m_ControlPanel.ControlPanelTitle = Resources.TextProjectTitleR188;
-                            break;
-                        case CommonConstants.ProjectIdR179:
-                            m_ControlPanel.ControlPanelTitle = Resources.TextProjectTitleR179;
-                            break;
-                        case CommonConstants.ProjectIdBART:
-                            m_ControlPanel.ControlPanelTitle = Resources.TextProjectTitleBART;
-                            break;
-                        case CommonConstants.ProjectIdRocket:
-                            m_ControlPanel.ControlPanelTitle = Resources.TextProjectTitleTorontoRocket;
-                            break;
-                        case CommonConstants.ProjectIdPAQA:
-                            m_ControlPanel.ControlPanelTitle = Resources.TextProjectTitlePAQA;
-                            break;
-                        case CommonConstants.ProjectIdMAPA:
-                            m_ControlPanel.ControlPanelTitle = Resources.TextProjectTitleMAPA;
-                            break;
-                        case CommonConstants.ProjectIdAPM:
-                            m_ControlPanel.ControlPanelTitle = Resources.TextProjectTitleAPM;
-                            break;
-                        default:
-                            m_ControlPanel.ControlPanelTitle = string.Empty;
-                            break;
-                    }
-
-                    // Specify whether the control panel needs to support the WibuBox security system.
-                    if (m_MenuInterfaceApplication.WibuBoxCheckIfRequired(projectIdentifier) == true)
-                    {
-                        m_ControlPanel.WibuBoxRequired = true;
-                    }
-                    else
-                    {
-                        m_ControlPanel.WibuBoxRequired = false;
-                    }
-
-                    m_ControlPanel.SubsystemCode = string.Empty;;
-                    m_ControlPanel.LocationCode = string.Empty;
-                    m_ControlPanel.Connection = string.Empty;
-
-                    m_ControlPanel.InitializeControlPanel(this as IMainWindow);
-                    this.Controls.RemoveByKey(CommonConstants.KeyPanelStatus);
-                    this.Controls.RemoveByKey(CommonConstants.KeyMenuStrip);
-                    this.Controls.RemoveByKey(CommonConstants.KeyToolStripFunctionKeys);
-                    this.Controls.Add(this.m_ControlPanel);
-                    this.Controls.Add(this.m_ToolStripFunctionKeys);
-                    this.Controls.Add(this.m_MenuStrip);
-                    this.Controls.Add(this.m_PanelStatus);
-                    this.Update();
-                    break;
-                default:
-                    break;
+                m_ControlPanel.WibuBoxRequired = true;
             }
-            #endregion - [Project Specific Control Panel] -
+            else
+            {
+                m_ControlPanel.WibuBoxRequired = false;
+            }
+
+            m_ControlPanel.SubsystemCode = string.Empty; ;
+            m_ControlPanel.LocationCode = string.Empty;
+            m_ControlPanel.Connection = string.Empty;
+
+            m_ControlPanel.InitializeControlPanel(this as IMainWindow);
+            this.Controls.RemoveByKey(CommonConstants.KeyPanelStatus);
+            this.Controls.RemoveByKey(CommonConstants.KeyMenuStrip);
+            this.Controls.RemoveByKey(CommonConstants.KeyToolStripFunctionKeys);
+            this.Controls.Add(this.m_ControlPanel);
+            this.Controls.Add(this.m_ToolStripFunctionKeys);
+            this.Controls.Add(this.m_MenuStrip);
+            this.Controls.Add(this.m_PanelStatus);
+            this.Update();
+            #endregion - [Control Panel update from XML configuratuion file] -
+
         }
 
         /// <summary>
