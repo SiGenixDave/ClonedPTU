@@ -46,6 +46,9 @@
  *                                      
  *                                      Modifications
  *                                      1.  Modified the constructor to add the title text and the appropriate 'Enter Factory ...' text string.
+ *                              
+ *  03/28/2019  1.5     vgott           Modifications
+ *                                      1.Added the Login required for all modes flag and Removed project specific conditions. 
  */
 #endregion --- Revision History ---
 
@@ -96,13 +99,11 @@ namespace Bombardier.PTU.Forms
 
             this.Text = string.Format(Resources.TitleLogin, Application.ProductVersion);
 
-            switch (Parameter.ProjectInformation.ProjectIdentifier)
+            switch (Parameter.isLoginRequiredAllModes)
             {
-                case CommonConstants.ProjectIdCTA:
-                case CommonConstants.ProjectIdRocket:
+                case true:                
                     m_LegendEnterPassword.Text = Resources.TextEnterFactEngMaintPassword;
                     break;
-
                 default:
                     m_LegendEnterPassword.Text = Resources.TextEnterFactEngPassword;
                     break;
