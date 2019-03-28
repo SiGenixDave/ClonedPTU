@@ -186,7 +186,7 @@
  *
  */
 /*
- *  06/24/2017  1.6.4   Vgott       Modifications                                  
+ *  03/28/2019  1.6.4   Vgott       Modifications                                  
  *                                  1. Added PTE display flag and Removed project specific to display as PTE. 
  *                                  2. Added the Eventlog button falg and removed project specific check.
  *                                      
