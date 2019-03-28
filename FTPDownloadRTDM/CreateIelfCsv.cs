@@ -20,7 +20,7 @@
  *  Date        Version Author      Comments
  *  12/01/2016  1.0     D.Smail     First Release.
  *
- *
+ *  03/28/2019  2.0     R. Schwartz Updated date and time to not update through local PC
  */
 
 #endregion --- Revision History ---
@@ -532,14 +532,14 @@ namespace FTPDownloadRTDM
             // Unix timestamp is seconds past epoch
             DateTime dtDateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, System.DateTimeKind.Utc);
 
-            if (dstFlag)
-            {
+            //if (dstFlag)
+            //{
                 // Add 3600 seconds (1 hour)
-                utc += 3600;
-            }
+            //    utc += 3600;
+            //}
 
             // Update the date/time and convert it to local time that exists on the PC
-            dtDateTime = dtDateTime.AddSeconds(utc).ToLocalTime();
+            dtDateTime = dtDateTime.AddSeconds(utc);
 
             // Example format: "Wed Jun 21 1970 12:34:56"
             return dtDateTime.ToString("ddd MMM dd yyyy HH:mm:ss");
