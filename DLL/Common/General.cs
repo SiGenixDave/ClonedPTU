@@ -269,6 +269,8 @@
  *                                  
  * 12/06/2018  1.21.6       Vgott   Modifications
  *                                  1.  Updated the code for new project ID: 300R.                                 
+ * 03/27/2019  1.21.7       Vgott   Modifications
+ *                                  1.  Added PTE display flag and Removed project specific to display as PTE.                                 
  */
 #endregion - [1.21] -
 #endregion --- Revision History ---
@@ -765,9 +767,7 @@ namespace Common
                             break;
                     }
                     string subSystem;
-                    if (Parameter.ProjectInformation.ProjectIdentifier.Equals(CommonConstants.ProjectIdPAQA)
-                        || Parameter.ProjectInformation.ProjectIdentifier.Equals(CommonConstants.ProjectIdMAPA)
-                        || Parameter.ProjectInformation.ProjectIdentifier.Equals(CommonConstants.ProjectIdAPM))
+                    if (!Parameter.isDisplayPTE)
                         subSystem = Subsystem.Replace("E", "U");
                     else
                         subSystem = Subsystem;
