@@ -2614,6 +2614,29 @@
  *                                   
  */
 #endregion - [Revision History 6.19] -
+
+#region - [Revision History 6.20] -
+/*
+ * 03/28/2019   6.20.0.0  Vgottam    Modifications 
+ *                                   1. Added new flags below for Parameterized PTU ,are activated from configuration file as.
+ *                                       a. To disable eventlog button in offline mode
+ *                                       b. To display Splash screen first when PTU Open.
+ *                                       c. To display SUM as PDF or CHM
+ *                                       d. To display PTU as PTE in Application
+ *                                       e. To show the login passwords are available for all modes or not.
+ *                                   2. Added PTE display flag and Removed project specific to display as PTE.
+ *                                   3. Added Wibukey check by verifying the FrimCode,UserCode and SlotD are not defaults and Removed project specific check.
+ *                                   4. New resource added as FilenameSoftwareUserManualPDF_PTE
+ *                                   5. Added the Login required for all modes flag and Removed project specific conditions
+ *                                   6. Added the Eventlog button falg and removed project specific check.
+ *                                   7. Update of loading XML configuration file before initializing PTU project specific data. changes in UpdateFilenameDateDictionaryProperty() method.
+ *                                   8. Added Automatic download flag and removed the project specific condition.
+ *                                   9. Removed control panel menu options by project specification
+ *                                   10. Updated display of Project title in PTU from configuration file using DDB file info.
+ *                                   11. Added Display Splash screen flag and Removed project specific condition.
+ */
+
+#endregion - [Revision History 6.20] -
 #endregion --- Revision History ---
 
 using System.Reflection;
@@ -2637,4 +2660,4 @@ using System.Resources;
 //
 // You can specify all the values or you can default the Revision and Build Numbers by using the '*'.
 
-[assembly: AssemblyVersion("6.19.8.1")]
+[assembly: AssemblyVersion("6.20.0.0")]
