@@ -98,7 +98,9 @@
  *
  * 12/06/2018   1.11      vgottam   Modifications
  *                                  1.  Updated the code for new project ID: 300R.                                 
-
+ *                                  
+ * 03/28/2019   1.12      vgottam   Modifications
+ *                                  1.  Added PTE display flag and Removed project specific to display as PTE. 
  */
 #endregion --- Revision History ---
 
@@ -141,10 +143,7 @@ namespace Bombardier.PTU.Forms
 
             m_LblCopyright.Text = Resources.LegendCopyright;
             m_LblRights.Text = Resources.LegendRights;
-            if(Parameter.ProjectInformation.ProjectIdentifier== CommonConstants.ProjectIdBART
-                || Parameter.ProjectInformation.ProjectIdentifier == CommonConstants.ProjectIdPAQA
-                || Parameter.ProjectInformation.ProjectIdentifier == CommonConstants.ProjectIdMAPA
-                || Parameter.ProjectInformation.ProjectIdentifier.Equals(CommonConstants.ProjectIdAPM))
+            if(!Parameter.isDisplayPTE)
                 this.Text = "About the " + Resources.ProductNamePTU;
             else
                 this.Text = "About the " + Resources.ProductNamePTE;
@@ -255,10 +254,9 @@ namespace Bombardier.PTU.Forms
 
             // Determine the filename of the release notes associated with this project.
             string filenameReleaseNotes = string.Empty;
-            switch (Parameter.ProjectInformation.ProjectIdentifier)
+            switch (Parameter.isDisplayPTE)
             {
-                case CommonConstants.ProjectIdNYCT:
-                case CommonConstants.ProjectIdR179:
+                case true:               
                     filenameReleaseNotes = Resources.FilenameReleaseNotesPTE;
                     break;
                 default:
