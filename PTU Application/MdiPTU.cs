@@ -499,7 +499,14 @@
  * 
  */
 #endregion
-
+#region - [1.28] -
+/*
+ *  03/21/2019  1.28    vgottam     Modifications
+ *                                  1.  Update of loading XML configuration file before initializing PTU project specific data. changes in UpdateFilenameDateDictionaryProperty() method.
+ *                                  2.  Added Automatic download flag and removed the project specific condition.
+ * 
+ */
+#endregion
 
 #endregion --- Revision History ---
 
@@ -796,7 +803,7 @@ namespace Bombardier.PTU
         {
             InitializeComponent();
             
-            InitializePTU();
+            InitializePTU();          
         }
         #endregion  --- Constructors ---
 
@@ -1021,36 +1028,7 @@ namespace Bombardier.PTU
                          "MdiPTU.MdiPTU_Shown() - [m_FilenameDataDictionary != Resources.FilenameDefaultDataDictionary]");
 
             this.Update();
-            Cursor = Cursors.WaitCursor;
-
-            // ----------------------------------
-            // Load the XML data dictionary file.
-            // ----------------------------------
-            m_DataDictionary = new DataDictionary();
-            
-            // Read the XML configuration file.
-            try
-            {
-                // If the XML file hasn't been updated to include the YearCodeSize field of the CONFIGUREPTU table, the other fields of the table are still
-                // read in correctly. If an attempt is made to access 'm_DataDictionary.CONFIGUREPTU[0].YearCodeSize' an exception is thrown.
-                m_DataDictionary.ReadXml(DirectoryManager.PathPTUConfigurationFiles + CommonConstants.BindingFilename + m_FilenameDataDictionary);
-            }
-            catch (Exception)
-            {
-                MessageBox.Show(string.Format(Resources.MBTConfigDataDictionaryInvalid, m_FilenameDataDictionary), 
-                                              Resources.MBCaptionError, MessageBoxButtons.OK, MessageBoxIcon.Error);
-                DisplayQueryExit = false;
-                Close();
-                return;
-            }
-            finally
-            {
-                this.Cursor = Cursors.Default;
-            }
-
-            Cursor = Cursors.WaitCursor;
-            LoadDictionary(m_DataDictionary);
-            Cursor = Cursors.Default;
+           
         }
 
         /// <summary>
@@ -1848,6 +1826,40 @@ namespace Bombardier.PTU
                 // The file exists, update the project data dictionary filename property.
                 m_FilenameDataDictionary = m_ProjectIdentifierPassedAsParameter + CommonConstants.Period + Resources.FilenameDefaultDataDictionary;
                 projectDataDictionaryExists = true;
+
+                #region - [Loading of XML configuration file before PTU initialization] -
+                Cursor = Cursors.WaitCursor;
+
+                // ----------------------------------
+                // Load the XML data dictionary file.
+                // ----------------------------------
+                m_DataDictionary = new DataDictionary();
+
+                // Read the XML configuration file.
+                try
+                {
+                    // If the XML file hasn't been updated to include the YearCodeSize field of the CONFIGUREPTU table, the other fields of the table are still
+                    // read in correctly. If an attempt is made to access 'm_DataDictionary.CONFIGUREPTU[0].YearCodeSize' an exception is thrown.
+                    m_DataDictionary.ReadXml(DirectoryManager.PathPTUConfigurationFiles + CommonConstants.BindingFilename + m_FilenameDataDictionary);
+                }
+                catch (Exception)
+                {
+                    MessageBox.Show(string.Format(Resources.MBTConfigDataDictionaryInvalid, m_FilenameDataDictionary),
+                                                  Resources.MBCaptionError, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    DisplayQueryExit = false;
+                    Close();
+
+                }
+                finally
+                {
+                    this.Cursor = Cursors.Default;
+                }
+
+                Cursor = Cursors.WaitCursor;
+                LoadDictionary(m_DataDictionary);
+                Cursor = Cursors.Default;
+                #endregion - [Loading of XML configuration file before PTU initialization] -
+
                 InitializePTUProjectSpecific(m_ProjectIdentifierPassedAsParameter);
 
             }
@@ -1930,9 +1942,9 @@ namespace Bombardier.PTU
                 if (fileInfoSource.Exists == false)
                 {
                     #region - [Locate PTU Configuration File] -
-                    switch (Parameter.ProjectInformation.ProjectIdentifier)
+                    switch (Parameter.isAutomaticDownloadAvailable)
                     {
-                        case CommonConstants.ProjectIdCTA:
+                        case true:
                             #region - [Download From VCU] -
                             // Modified for the CTA contract. Ref.: P.O. 4800011369-CU2 07.07.2015. Attempt to download the PTU configuration files
                             // from the propulsion system software.
