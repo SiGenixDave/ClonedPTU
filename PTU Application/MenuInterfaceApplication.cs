@@ -146,7 +146,9 @@
  *                                  
  * 12/06/2018   1.21       Vgott   Modifications
  *                                  1.  Updated the code for new project ID: 300R.                                 
-
+ * 03/28/2018   1.22       Vgott   Modifications
+ *                                  1.  Added PTE display flag and Removed project specific to display as PTE.  
+ *                                  2.  Added Display SUM as PDF flag and removed the project specific condition
  */
 #endregion --- Revision History ---
 
@@ -400,20 +402,13 @@ namespace Bombardier.PTU
         {
             // Determine the filename of the Software User Manual associated with this project.
             string filenameSoftwareUserManual = string.Empty;
-            switch (Parameter.ProjectInformation.ProjectIdentifier)
+            switch (Parameter.isDisplaySUM_PDF)
             {
-                case CommonConstants.ProjectIdNYCT:
-                case CommonConstants.ProjectIdR179:
-                    filenameSoftwareUserManual = Resources.FilenameSoftwareUserManualPTE;
-                    break;
-                case CommonConstants.ProjectIdBART:
-                case CommonConstants.ProjectIdPAQA:
-                case CommonConstants.ProjectIdMAPA:
-                case CommonConstants.ProjectIdAPM:
-                    filenameSoftwareUserManual = Resources.FilenameSoftwareUserManualPTUBart;
-                    break;
+                case true:
+                    filenameSoftwareUserManual = ((Parameter.isDisplayPTE) ? Resources.FilenameSoftwareUserManualPDF_PTE : Resources.FilenameSoftwareUserManualPTU);
+                    break;                
                 default:
-                    filenameSoftwareUserManual = Resources.FilenameSoftwareUserManualPTU;
+                    filenameSoftwareUserManual = ((Parameter.isDisplayPTE) ? Resources.FilenameSoftwareUserManualPTE : Resources.FilenameSoftwareUserManualPTUBart);
                     break;
             }
 
@@ -423,7 +418,7 @@ namespace Bombardier.PTU
                                                               CommonConstants.Period + filenameSoftwareUserManual;
 
             // BART has a help file requirement so this has been added
-            if (Parameter.ProjectInformation.ProjectIdentifier == CommonConstants.ProjectIdBART || filenameSoftwareUserManual.ToLower().Contains(".chm"))
+            if ((!Parameter.isDisplaySUM_PDF) || filenameSoftwareUserManual.ToLower().Contains(".chm"))
             {
                 Help.ShowHelp(parentForm, fullyQualifiedFilenameSoftwareUserManual);
                 return;
@@ -459,10 +454,9 @@ namespace Bombardier.PTU
         {
             // Determine the filename of the help document associated with this project.
             string productName;
-            switch (Parameter.ProjectInformation.ProjectIdentifier)
+            switch (Parameter.isDisplayPTE)
             {
-                case CommonConstants.ProjectIdNYCT:
-                case CommonConstants.ProjectIdR179:
+                case true:               
                     productName = Resources.ProductNamePTE;
                     break;
                 default:
