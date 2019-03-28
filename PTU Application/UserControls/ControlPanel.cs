@@ -185,6 +185,13 @@
  *                                      
  *
  */
+/*
+ *  06/24/2017  1.6.4   Vgott       Modifications                                  
+ *                                  1. Added PTE display flag and Removed project specific to display as PTE. 
+ *                                  2. Added the Eventlog button falg and removed project specific check.
+ *                                      
+ *
+ */
 #endregion - [1.6] -
 #endregion --- Revision History ---
 
@@ -1000,17 +1007,11 @@ namespace Bombardier.PTU
                                                    (m_ToolStripMenuItemDiagnosticsEventLog.Enabled == true)) ? true : false;
 
             // For the R188 project, disable the 'Event Log' button in Simulation mode.
-            switch (this.ProjectIdentifier)
+            if (Parameter.isEventLogbuttonEnable && MainWindow.Mode.Equals(Mode.Offline))
             {
-                case CommonConstants.ProjectIdNYCT:
-                    if (MainWindow.Mode.Equals(Mode.Offline))
-                    {
-                        m_ButtonDiagnosticsEventLog.Enabled = false;
-                    }
-                    break;
-                default:
-                    break;
+                m_ButtonDiagnosticsEventLog.Enabled = false;
             }
+              
         }
 
         /// <summary>
@@ -1227,10 +1228,9 @@ namespace Bombardier.PTU
         /// <param name="e">Parameter passed from the object that raised the event.</param>
         private void ControlPanel_Load(object sender, EventArgs e)
         {
-            switch (this.ProjectIdentifier)
+            switch (Parameter.isDisplayPTE)
             {
-                case CommonConstants.ProjectIdNYCT:
-                case CommonConstants.ProjectIdR179:
+                case true:              
                     this.m_LegendPTUStatus.Text = Resources.PTE_Status;
                     this.m_ToolTip.SetToolTip(this.m_ButtonHelp, Resources.HomeBtn_Help_ToolTipPTE);
                     break;
