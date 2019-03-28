@@ -111,6 +111,13 @@
  *                                  Modifications
  *                                  1.  Rationalized the WibuBoxCheckIfRequired() method. Only the R188 project uses the WibuKey.                  
  */
+
+
+
+/*
+ *  03/27/19    1.15    Vgott       Modifications
+ *                                  1.  Added Wibukey check by verifying the FrimCode,UserCode and SlotD are not defaults and Removed project specific check. 
+ */                                  
 #endregion --- Revision History ---
 
 using System.Diagnostics;
@@ -324,21 +331,19 @@ namespace Common
         public bool WibuBoxCheckIfRequired(string projectIdentifier)
         {
             bool wibuBoxIsRequired = false;
-
-            switch (projectIdentifier)
+            // If the project uses the WibuKey then all the below fields shall not be 0's.
+            if (Parameter.WibuBox.FirmCode.Equals(0) || Parameter.WibuBox.UserCode.Equals(0)
+                || Parameter.WibuBox.SlotId.Equals(0))
             {
-                case CommonConstants.ProjectIdNYCT:
-                    // Only the R188 project uses the WibuKey.
-                    m_FirmCode = FirmCodeR8PR;
-                    m_UserCode = UserCodeR8PR;
-                    m_SlotId = SlotIdentifierR8PR;
-                    wibuBoxIsRequired = true;
-                    break;
-
-                default:
-                    break;
+                wibuBoxIsRequired = false;
             }
-
+            else
+            {
+                m_FirmCode = Parameter.WibuBox.FirmCode;
+                m_UserCode = Parameter.WibuBox.UserCode;
+                m_SlotId = Parameter.WibuBox.SlotId;
+                wibuBoxIsRequired = true;
+            }
             m_WibuBoxIsInitialized = true;
 
             return wibuBoxIsRequired;
