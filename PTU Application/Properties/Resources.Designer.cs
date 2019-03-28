@@ -314,6 +314,15 @@ namespace Bombardier.PTU.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to PTE-SoftwareUserManual.pdf.
+        /// </summary>
+        internal static string FilenameSoftwareUserManualPDF_PTE {
+            get {
+                return ResourceManager.GetString("FilenameSoftwareUserManualPDF_PTE", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to PTE-SoftwareUserManual.chm.
         /// </summary>
         internal static string FilenameSoftwareUserManualPTE {

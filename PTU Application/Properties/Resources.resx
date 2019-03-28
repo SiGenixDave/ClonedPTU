@@ -796,4 +796,7 @@
   <data name="TextProjectTitleAPM" xml:space="preserve">
     <value>APM 300R</value>
   </data>
+  <data name="FilenameSoftwareUserManualPDF_PTE" xml:space="preserve">
+    <value>PTE-SoftwareUserManual.pdf</value>
+  </data>
 </root>
