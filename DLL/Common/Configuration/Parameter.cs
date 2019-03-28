@@ -168,6 +168,16 @@
  *  02/10/2017  1.15    D.Smail     Modifications
  *                                  1.  Added EnableSTCommWatchdog static property and the associated static member variable that supports
  *                                      the ability for the PTU to perform continuous watchdog checks during self test.
+ *                                      
+ *  03/27/2019  1.16    Vgottam     Modifications
+ *                                  1.  Added new flags below for Parameterized PTU for the below.
+ *                                      a. To disable eventlog button in offline mode
+ *                                      b. To display Splash screen first when PTU Open.
+ *                                      c. To display SUM as PDF or CHM
+ *                                      d. To display PTU as PTE in Application
+ *                                      e. To show the login passwords are available for all modes or not.
+ *                                      f. To downlaod configuration files from VCU automaticall or manually.
+ *                                      
  */
 #endregion --- Revision History ---
 
@@ -371,6 +381,38 @@ namespace Common.Configuration
 
         #region --- Member Variables ---
         #region - [Data Dictionary Defined] -
+
+        /// <summary>
+        /// A flag to specify whether the PTU Application to disable Eventlog button in simulation mode. True, if the PTU disable Eventlog button in simulation mode; otherwise, 
+        /// false for enable.
+        /// </summary>
+        private static bool m_EventLogDisable = false;
+
+        /// <summary>
+        /// A flag to specify whether the PTU Application to display splash screen. True, if the Application displays Splash screen first; otherwise, 
+        /// false for not display.
+        /// </summary>
+        private static bool m_DisplaySplashScreen = false;
+        /// <summary>
+        /// A flag to specify whether the PTU Application to display Software User Manual as PDF. True, if the PTU display as PDF; otherwise, 
+        /// false for CHM file.
+        /// </summary>
+        private static bool m_DisplaySUM = false;
+        /// <summary>
+        /// A flag to specify whether the PTU Application to display as PTE by overrating PTU. True, if the Application displays PTE; otherwise, 
+        /// false for diaplay PTU.
+        /// </summary>
+        private static bool m_DisplayPTE = false;
+        /// <summary>
+        /// A flag to specify whether the login passwords are available for modes Factory or Engineering or Maintanance. True, if the login passwords are available for modes Factory, Engineering or Maintenance; otherwise, 
+        /// false for the login passwords are available for modes Factory or Engineering.
+        /// </summary>
+        private static bool m_LoginRequiredAllModes = false;
+        /// <summary>
+        /// A flag to specify whether to download the configuration files manually or automatically from VCU. True, if the configuration files automatically from VCU using FTP; otherwise, 
+        /// false for downloading manually.
+        /// </summary>
+        private static bool m_Download = false;
         /// <summary>
         /// A flag to specify whether the event log is to be saved as a CSV file as well as an XML file. True, if a CSV file of the event log is to be created; otherwise, 
         /// false.
@@ -400,10 +442,10 @@ namespace Common.Configuration
 
         /// <summary>
         /// <para>A bitmask used to specify which programmable function options are to be used.</para>
-        /// Bit 7   -   Not Used.
-        /// Bit 6   -   Not Used.
-        /// Bit 5   -   Not Used.
-        /// Bit 4   -   Not Used.
+        /// Bit 7   -   Disable event log button in simulation.
+        /// Bit 6   -   Display Splash screen.
+        /// Bit 5   -   Display Software User Manual of PDF or CHM.
+        /// Bit 4   -   Display PTE or PTU.
         /// Bit 3   -   EnableSTCommWatchdog - Flag indicates whether a continuous communication watchdog check is enabled during self test, even
         ///                                    during times when no self test is active.
         /// Bit 2   -   GenerateCSV - Flag to specify whether the event log is to be saved as a CSV file as well as an XML file. True, if a CSV file of the event log is
@@ -558,7 +600,12 @@ namespace Common.Configuration
             m_ShowLogName = false;
             m_Use4DigitYearCode = false;
             m_EnableSTCommWatchdog = false;
-
+            m_DisplayPTE = false;
+            m_LoginRequiredAllModes = false;
+            m_Download = false;
+            m_DisplaySplashScreen = false;
+            m_EventLogDisable = false;
+            m_DisplaySUM = false;
             // --------------------
             // Recorded Watch Data
             // --------------------
@@ -633,7 +680,11 @@ namespace Common.Configuration
                 m_Use4DigitYearCode =   ((m_FunctionFlags & CommonConstants.MaskBit0) == CommonConstants.MaskBit0) ? true : false;
                 m_ShowLogName =         ((m_FunctionFlags & CommonConstants.MaskBit1) == CommonConstants.MaskBit1) ? true : false;
                 m_GenerateCSV = ((m_FunctionFlags & CommonConstants.MaskBit2) == CommonConstants.MaskBit2) ? true : false;
-                m_EnableSTCommWatchdog = ((m_FunctionFlags & CommonConstants.MaskBit3) == CommonConstants.MaskBit3) ? true : false;
+                m_EnableSTCommWatchdog = ((m_FunctionFlags & CommonConstants.MaskBit3) == CommonConstants.MaskBit3) ? true : false;               
+                m_DisplayPTE = ((m_FunctionFlags & CommonConstants.MaskBit4) == CommonConstants.MaskBit4) ? true : false;
+                m_DisplaySUM = ((m_FunctionFlags & CommonConstants.MaskBit5) == CommonConstants.MaskBit5) ? true : false;
+                m_DisplaySplashScreen = ((m_FunctionFlags & CommonConstants.MaskBit6) == CommonConstants.MaskBit6) ? true : false;
+                m_EventLogDisable = ((m_FunctionFlags & CommonConstants.MaskBit7) == CommonConstants.MaskBit7) ? true : false;
             }
             catch (Exception)
             {
@@ -730,6 +781,28 @@ namespace Common.Configuration
             }
 
             // ----------------------
+            // Application password protection available for all modes Factory, Engineering or Maintenance
+            // ----------------------
+            try
+            {
+                m_LoginRequiredAllModes = dataDictionary.CONFIGUREPTU[0].MODE == 0 ? false : true;               
+            }
+            catch (Exception)
+            {
+                // Use the default values set up by the static constructor instead.
+            }
+            // ----------------------
+            //Download the configuration files manually or automatically from VCU
+            // ----------------------
+            try
+            {
+                m_Download = dataDictionary.CONFIGUREPTU[0].DOWNLOAD == 0 ? false : true;
+            }
+            catch (Exception)
+            {
+                // Use the default values set up by the static constructor instead.
+            }
+            // ----------------------
             // Application Data Path
             // ----------------------
             try
@@ -791,6 +864,56 @@ namespace Common.Configuration
 
         #region --- Properties ---
         #region - [Data Dictionary Defined] -
+
+        /// <summary>
+        /// Get the flag that specifies whether the PTU Application to disable Eventlog button in simulation mode. True, if the PTU disable Eventlog button in simulation mode; otherwise, 
+        /// false for enable.
+        /// </summary>
+        public static bool isEventLogbuttonEnable
+        {
+            get { return m_EventLogDisable; }
+        }
+        /// <summary>
+        /// Get the flag that specifies whether the PTU Application to display splash screen. True, if the Application displays Splash screen first; otherwise, 
+        /// false for not display.
+        /// </summary>
+        public static bool isDisplaySplashScreen
+        {
+            get { return m_DisplaySplashScreen; }
+        }
+        /// <summary>
+        /// Get the flag that specifies whether the PTU Application to display as PTE by overrating PTU. True, if the Application displays PTE; otherwise, 
+        /// false for diaplay PTU.
+        /// </summary>
+        public static bool isDisplaySUM_PDF
+        {
+            get { return m_DisplaySUM; }
+        }
+        /// <summary>
+        /// Get the flag that specifies whether the PTU Application to display as PTE by overrating PTU. True, if the Application displays PTE; otherwise, 
+        /// false for diaplay PTU.
+        /// </summary>
+        public static bool isDisplayPTE
+        {
+            get { return m_DisplayPTE; }
+        }
+        /// <summary>
+        /// Get the flag that specifies whether the login passwords are available for modes Factory or Engineering or Maintanance. True, if the login passwords are available for modes Factory, Engineering or Maintenance; otherwise, 
+        /// false for the login passwords are available for modes Factory or Engineering.
+        /// </summary>
+        public static bool isLoginRequiredAllModes
+        {
+            get { return m_LoginRequiredAllModes; }
+        }
+        /// <summary>
+        /// Get the flag that specifies whether to download the configuration files manually or automatically from VCU. True, if the configuration files automatically from VCU using FTP; otherwise, 
+        /// false for downloading manually.
+        /// </summary>
+        public static bool isAutomaticDownloadAvailable
+        {
+            get { return m_Download; }
+        }
+
         /// <summary>
         /// Get the flag that specifies whether a Self Test communication watchdog is enabled. True if watchdog is enabled,
         /// otherwise false.
