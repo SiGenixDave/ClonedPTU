@@ -1817,6 +1817,21 @@
  */
 
 #endregion - [1.35] -
+#region - [1.36] -
+/*
+ *  03/28/2019     1.36.0  Vgottam  Modifications
+ *                                  1.  Added new flags below for Parameterized PTU for the below.
+ *                                      a. To disable eventlog button in offline mode
+ *                                      b. To display Splash screen first when PTU Open.
+ *                                      c. To display SUM as PDF or CHM
+ *                                      d. To display PTU as PTE in Application
+ *                                      e. To show the login passwords are available for all modes or not.
+ *                                      f. To downlaod configuration files from VCU automaticall or manually.
+ *                                   2. Added Wibukey check by verifying the FrimCode,UserCode and SlotID are not defaults and Removed project specific check.
+ *                                  
+ */
+
+#endregion - [1.36] -
 #endregion --- Revision History ---
 
 using System.Reflection;
@@ -1854,4 +1869,4 @@ using System.Runtime.InteropServices;
 //
 // You can specify all the values or you can default the Revision and Build Numbers by using the '*'.
 
-[assembly: AssemblyVersion("1.35.0.0")]
+[assembly: AssemblyVersion("1.36.0.0")]
