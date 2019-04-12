@@ -34,16 +34,16 @@
  *
  *                                  2.  Modified the ReceiveTargetDataPacket() method to return an error if the call to ReceiveMessage() indicates that the buffer
  *                                      is full.
- *                                      
+ *
  *  09/06/2017  1.2     D.Smail     Modifications
- *                                  1. Fixed issue with SendMessageToTarget(). Original code sent the entire message to the target and then waited for 
+ *                                  1. Fixed issue with SendMessageToTarget(). Original code sent the entire message to the target and then waited for
  *                                     the entire message to be echoed by the target. For most targets, this is OK. However, the official serial protocol
- *                                     is to send each byte in the message and then wait for the byte to be echoed back from the target before sending 
+ *                                     is to send each byte in the message and then wait for the byte to be echoed back from the target before sending
  *                                     the next byte in the message. This fix accomplished that.
- *                                  
- * 
- * 
- *                                  
+ *
+ *
+ *
+ *
  */
 
 #endregion --- Revision History ---
@@ -548,6 +548,7 @@ namespace VcuComm
             }
             catch (Exception e)
             {
+                Console.WriteLine("Error Reading RX");
                 m_SerialError = ProtocolPTU.Errors.ReceiveMessage;
                 m_ExceptionMessage = e.Message;
                 return -1;

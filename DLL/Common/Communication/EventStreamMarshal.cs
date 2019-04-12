@@ -1,4 +1,5 @@
 #region --- Revision History ---
+
 /*
  *
  *  This document and its contents are the property of Bombardier Inc. or its subsidiaries and contains confidential, proprietary information.
@@ -16,7 +17,9 @@
  *  Revision History
  *  ----------------
  */
+
 #region - [1.0 to 1.1] -
+
 /*
  *  Date        Version Author      Comments
  *  03/01/2015  1.0     D.Smail     First Release.
@@ -27,13 +30,13 @@
  *                                      the PTU reported ‘Unable to retrieve the data stream associated with the MVB Communication Failure event’ and polling for new
  *                                      events was never resumed. After a 10 second period, Windows reported that the ‘Portable Test Application has stopped working’
  *                                      without ever throwing an exception.
- *                                      
- *                                  2.  Bug Fix - SNCR-PTU [01 Mar 2016] - Item 14. This is linked to SNCR-PTU [01 Mar 2016] - Item 10. While trying to save a CTA 
+ *
+ *                                  2.  Bug Fix - SNCR-PTU [01 Mar 2016] - Item 14. This is linked to SNCR-PTU [01 Mar 2016] - Item 10. While trying to save a CTA
  *                                      event log containing invalid data streams, in order to demonstrate the generation of a CSV file, once the invalid data stream
  *                                      had been unsuccessfully downloaded and the PTU resumed polling for new events an ApplicationException was thrown by the call
  *                                      to m_MutexCommuncationInterface.ReleaseMutex() in the finally block of the try/catch block in the
  *                                      CommunicationEvent.CheckFaultLogger() method. Details of the exception are as follows:
- *                                      
+ *
  *                                          System.ApplicationException was unhandled HResult=-2146232832
  *                                          Message=Object synchronization method was called from an unsynchronized block of code.
  *                                          Source=mscorlib
@@ -48,57 +51,60 @@
  *                                          .
  *                                          .
  *                                          at System.Threading.ThreadHelper.ThreadStart()
- *                                          
+ *
  *                                  3.  Bug Fix - SNCR-PTU [01 Mar 16] Item 18. While testing the changes associated with items 10, 11, 14 and 15 a number of valid
  *                                      fault datastreams were generated for the CTA project using the following procedure:
- *                                      
- *                                          (1) synchronised the VCU time with the PC time; 
- *                                          (2) ensured that the event flags were configured such that a ‘Battery Voltage Out of Range’ event generates a data stream; 
- *                                          (3) initialised the event log system; 
- *                                          (4) ensured that the data stream workset loaded into the VCU was set to the ‘Factory Settings‘ workset; and; 
+ *
+ *                                          (1) synchronised the VCU time with the PC time;
+ *                                          (2) ensured that the event flags were configured such that a ‘Battery Voltage Out of Range’ event generates a data stream;
+ *                                          (3) initialised the event log system;
+ *                                          (4) ensured that the data stream workset loaded into the VCU was set to the ‘Factory Settings‘ workset; and;
  *                                          (5) created a number of ‘Battery Voltage Out of Range’ faults using the procedure outlined by John Paul in the document
  *                                              ‘[J.P.] - Method to Generate Event Variables.pdf’.
- *                                          
- *                                      Once the fault log datastreams had been created, they were randomly downloaded, using the ‘Show DataStream’ context menu, and 
+ *
+ *                                      Once the fault log datastreams had been created, they were randomly downloaded, using the ‘Show DataStream’ context menu, and
  *                                      in each case, instead of displaying the expected data values, the vertical bar that represents the event trip time is displayed
  *                                      way over to the left, the duration is incorrect and the data values bear little correlation to the actual data values.
  *
  *                                  Modifications
  *                                  1.  Increased the size of the receive buffer size, MAX_FAULT_BUFFER_SIZE, from 4096 to 65,500 to account for larger payloads,
  *                                      especially when downloading data streams. - Ref.: 1,2.
- *                                      
+ *
  *                                  2.  Corrected the GetStream() method to ensure that the data value bytes contained within the m_RxMessaged member variable are
  *                                      byte swapped correctly depending upon whether the target uses Big Endian or Little Endian coding.- Ref. 3.
  *
  */
+
 #endregion - [1.0 to 1.1] -
 
 #region - [1.2] -
+
 /*
  *  09/12/2016  1.2     DAS            References
  *                                      1.  Bug Fix - Support 4 digit year code returned from VCU.
- *                                      
+ *
  *                                      Modifications
  *                                      1.  Modified functions GetFaultHdr & GetFaultVar to include the bool Use4DigitYearCode
  *                                          so that a 4 digit year code can be interpreted properly when an event is generated by
- *                                          the VCU. For 2 digit year codes (1 byte), the TimeStamp is 6 bytes and the year is 
- *                                          in byte[5]. For 4 digit year codes (2 bytes), the TimeStamp is 8 bytes and the year is 
+ *                                          the VCU. For 2 digit year codes (1 byte), the TimeStamp is 6 bytes and the year is
+ *                                          in byte[5]. For 4 digit year codes (2 bytes), the TimeStamp is 8 bytes and the year is
  *                                          in byte[5] & byte[6] where byte[5] contains the Most Significant Byte and byte[6] contains
- *                                          the Least Significant Byte. Byte[7] is a pad/spare byte in a 4 digit year code timestamp. 
- *                                          
+ *                                          the Least Significant Byte. Byte[7] is a pad/spare byte in a 4 digit year code timestamp.
+ *
  *                                      2. Added another VerifyDate function to support 4 digit year codes and the valid range check.
- *                                      
- * 
+ *
+ *
  *  02/18/2019  1.2    R. Schwartz      Modifications
  *                                      1. Added logic to correctly display the 4 digit year based on a 2 digit year code.
  */
+
 #endregion - [1.2] -
+
 #endregion --- Revision History ---
 
 using System;
 using VcuComm;
 using System.Collections.Generic;
-
 
 namespace Common.Communication
 {
@@ -139,7 +145,7 @@ namespace Common.Communication
         private const Int16 MAX_FAULT_SIZE_BYTES = 256;
 
         /// <summary>
-        /// The maximum number of faults that the embedded target can store and subsequently the 
+        /// The maximum number of faults that the embedded target can store and subsequently the
         /// maximum amount of faults this application can process. VAlue: 1,000.
         /// </summary>
         private const Int16 MAX_NUM_FAULTS = 1000;
@@ -148,6 +154,7 @@ namespace Common.Communication
         /// The maximum number of embedded target tasks. Value: 120.
         /// </summary>
         private const Int16 MAX_TASKS = 120;
+
         #endregion --- Constants ---
 
         #region --- Member Variables ---
@@ -186,6 +193,7 @@ namespace Common.Communication
         /// size.
         /// </summary>
         private Byte[] m_RxMessage = new Byte[MAX_FAULT_BUFFER_SIZE + ProtocolPTU.HEADER_SIZE_BYTES];
+
         #endregion --- Member Variables ---
 
         #region --- Constructors ---
@@ -213,8 +221,8 @@ namespace Common.Communication
         #region --- Public Methods ---
 
         /// <summary>
-        /// This method requests the embedded target to change the event log that is to be monitored or 
-        /// events / streams to be downloaded from. 
+        /// This method requests the embedded target to change the event log that is to be monitored or
+        /// events / streams to be downloaded from.
         /// </summary>
         /// <param name="NewEventLogNumber">the event log id to change to</param>
         /// <param name="DataRecordingRate">the data recording rate for the event log</param>
@@ -257,15 +265,14 @@ namespace Common.Communication
                 {
                     MaxEventsPerTask = MAX_EVENTS_PER_TASK - 1;
                 }
-
             }
 
             return commError;
         }
 
         /// <summary>
-        /// This method is invoked when polling the embedded target for any new events that have occurred while displaying 
-        /// event screen. 
+        /// This method is invoked when polling the embedded target for any new events that have occurred while displaying
+        /// event screen.
         /// </summary>
         /// <param name="PassedNumOfFaults">Will be updated with the current number of faults if the number of faults on the
         /// embedded target has changed since the last poll</param>
@@ -324,7 +331,6 @@ namespace Common.Communication
                     newEventsLogged = (UInt32)(NewestIndex - FaultIndex + 1);
                 }
 
-
                 if (newEventsLogged == 0)
                 {
                     break;
@@ -332,10 +338,9 @@ namespace Common.Communication
 
                 // If the code reaches this point without "breaking", new events have been recorded
                 // by the embedded target. However, if RemoteFaults == PassedNumOfFaults, that means
-                // the embedded target buffer is full and at least 1 old fault has been flushed. 
+                // the embedded target buffer is full and at least 1 old fault has been flushed.
                 // If the flag is true, then the faults at the beginning of the fault list will be removed
                 Int16 totalRemoteFaults = (Int16)((NewestIndex - OldestIndex) + 1);
-
 
                 // Get the newest fault information
                 commError = GetFaultData((UInt32)(FaultIndex % 65536), (UInt16)newEventsLogged);
@@ -401,14 +406,12 @@ namespace Common.Communication
                     m_FaultStorage.RemoveAt(0);
                     m_CurrentNumberOfFaults--;
                 }
-
             } while (false);
 
             // Enable Fault Logging here in case we left the while loop early
             commError = EnableFaultLogging(true);
 
-
-            // Update the reference parameters if all transactions went OK and at least one new fault was reecived 
+            // Update the reference parameters if all transactions went OK and at least one new fault was reecived
             if ((commError == CommunicationError.Success) && (newEventsLogged > 0))
             {
                 orig_new = NewestIndex;
@@ -434,7 +437,7 @@ namespace Common.Communication
         }
 
         /// <summary>
-        /// This method gets the default stream information associated with the event log. This includes the number of variables, the 
+        /// This method gets the default stream information associated with the event log. This includes the number of variables, the
         /// number of samples, the sample rate and the stream variables' indexes and types.
         /// </summary>
         /// <param name="NumberOfVariables">the number of variables in the stream</param>
@@ -446,7 +449,6 @@ namespace Common.Communication
         public CommunicationError GetDefaultStreamInformation(out Int16 NumberOfVariables, out Int16 NumberOfSamples, out Int16 SampleRate,
                                                                Int16[] VariableIndex, Int16[] VariableType)
         {
-
             // TODO: required to set values based on "out" interface which was not required when API was unmanaged; may need to revisit if errors occur
             NumberOfVariables = -1;
             NumberOfSamples = -1;
@@ -494,7 +496,7 @@ namespace Common.Communication
         }
 
         /// <summary>
-        /// NOTE: This method is currently is unused but is implemented for completeness. 
+        /// NOTE: This method is currently is unused but is implemented for completeness.
         /// </summary>
         /// <param name="CurrentEventLog"></param>
         /// <param name="NumberEventLogs"></param>
@@ -522,7 +524,6 @@ namespace Common.Communication
 
             return commError;
         }
-
 
         /// <summary>
         /// This method is invoked for every event that is downloaded from the embedded target. It extracts all of the information
@@ -560,7 +561,7 @@ namespace Common.Communication
 
             UInt16 fourDigitYear = 0;
             Byte twoDigitYear = 0;
-            String newYearCode = "";                                    //Set up new String variable for 2 digit year code                         
+            String newYearCode = "";                                    //Set up new String variable for 2 digit year code
 
             if (Use4DigitYearCode)
             {
@@ -572,18 +573,16 @@ namespace Common.Communication
                 twoDigitYear = m_FaultStorage[index][DATE_OFFSET_IN_FAULT_LOG + 5];         //Get the raw data from the table
                 //New code
                 String str1 = twoDigitYear.ToString("D4");          //Get the 4 digit year (e.g. 2066) into a string
-                String str2 = str1.Substring(2, 2);                 //Get the last two digits of the year (e.g. 66)                      
+                String str2 = str1.Substring(2, 2);                 //Get the last two digits of the year (e.g. 66)
                 int parsing = Int32.Parse(str2);                    //set up parsing variable to get to int type for comparison
-                if (parsing > 0 && parsing < 70)                    //Do comparison to set correct date for 2 digit code                
+                if (parsing > 0 && parsing < 70)                    //Do comparison to set correct date for 2 digit code
                 {
                     newYearCode = "20" + str2;                      //append the correct prefix to the last two digits
                 }                                                   //if conditions are not met then 19 is the designated prefix
                 else
                 {
                     newYearCode = "19" + str2;                      //Append a 19 if the conditions aren't met
-
                 }
-
             }
 
             if (m_CommDevice.IsTargetBigEndian())
@@ -613,7 +612,6 @@ namespace Common.Communication
                 Flttime = "N/A";
             }
 
-
             if (Use4DigitYearCode)
             {
                 // Check Date
@@ -636,7 +634,6 @@ namespace Common.Communication
 
                     //New Code- append the newYearCode string to the Fltdate String
                     Fltdate = month.ToString("D2") + "/" + day.ToString("D2") + "/" + newYearCode;
-
                 }
                 else
                 {
@@ -667,7 +664,7 @@ namespace Common.Communication
         }
 
         /// <summary>
-        /// Method parses through the most recent downloaded fault logs and extracts the variable and variable types for the 
+        /// Method parses through the most recent downloaded fault logs and extracts the variable and variable types for the
         /// request event (FaultIndex) and populates the VariableType and VariableValue arrays.
         /// </summary>
         /// <param name="FaultIndex">The index of the fault to be parsed</param>
@@ -767,7 +764,7 @@ namespace Common.Communication
 
         /// <summary>
         /// Get the status of the flags that control: (a) whether the event type is enabled and (b) whether the event type triggers the recoding of a
-        /// data stream. 
+        /// data stream.
         /// </summary>
         /// <param name="Valid">An array of flags that define which of the available event types are valid for the current log. The total length
         /// of the array is the maximum number of events per task multiplied by the maximum number of tasks and the array element corresponding to a
@@ -1091,7 +1088,7 @@ namespace Common.Communication
         }
 
         /// <summary>
-        /// This method gets all of the logged faults/events from the embedded target's current event log. 
+        /// This method gets all of the logged faults/events from the embedded target's current event log.
         /// </summary>
         /// <param name="NumberOfFaults">the number of events that are currently stored in the embedded target NVRAM (updated from embedded target response)</param>
         /// <param name="OldestIndex">the oldest fault index that has been logged (updated from embedded target response)</param>
@@ -1151,7 +1148,7 @@ namespace Common.Communication
 
                 UInt32 faultCounter = 0;
                 // GetFaultData() can only get a max of MAXFAULTBUFFERSIZE bytes of data. So if there are
-                // more than faults in the Fault Log than this loop has to iterate several times to get all 
+                // more than faults in the Fault Log than this loop has to iterate several times to get all
                 // of the fault data
                 do
                 {
@@ -1168,7 +1165,7 @@ namespace Common.Communication
                     }
 
                     // Loop through the fault buffer, pulling out the size and data for each fault
-                    for (Int32 index = 0; index < m_FaultDataFromTarget.BufferSize; )
+                    for (Int32 index = 0; index < m_FaultDataFromTarget.BufferSize;)
                     {
                         faultCounter++;
 
@@ -1206,7 +1203,7 @@ namespace Common.Communication
                 } while ((faultCounter < remoteFaults) && (commError != CommunicationError.UnknownError));
 
                 // Force the Return Code so we can extract all valid faults
-                commError = CommunicationError.Success;
+                //DAS commError = CommunicationError.Success;
 
                 // Save the number of good faults we retrieved
                 NumberOfFaults = m_CurrentNumberOfFaults;
@@ -1243,7 +1240,7 @@ namespace Common.Communication
 
         /// <summary>
         /// Set the flag that controls: (a) whether the specified event type is enabled and (b) whether the event type triggers the recoding of a data
-        /// stream. 
+        /// stream.
         /// </summary>
         /// <param name="TaskNumber">The task identifier associated with the event type.</param>
         /// <param name="FaultNumber">The event identifier associated with the event type.</param>
@@ -1261,14 +1258,13 @@ namespace Common.Communication
             return commError;
         }
 
-
         #endregion --- Public Methods ---
 
         #region --- Private Methods ---
 
         /// <summary>
-        /// This method attempts to get all of the logged faults and subsequent attached fault log data from the 
-        /// embedded target. If successful, all of the fault data is copied from the 
+        /// This method attempts to get all of the logged faults and subsequent attached fault log data from the
+        /// embedded target. If successful, all of the fault data is copied from the
         /// </summary>
         /// <param name="FaultIndex">The starting fault index to retrieve faults from the embedded target</param>
         /// <param name="NumberOfFaults">The amount of faults to retrieve.</param>
@@ -1281,8 +1277,8 @@ namespace Common.Communication
 
             if (commError == CommunicationError.Success)
             {
-                // Get the amount of data in the return buffer from the embedded target. NOTE: Due to buffer 
-                // size limitations, all of the existing faults on the embedded target may be sent in more than 
+                // Get the amount of data in the return buffer from the embedded target. NOTE: Due to buffer
+                // size limitations, all of the existing faults on the embedded target may be sent in more than
                 // packet
                 m_FaultDataFromTarget.BufferSize = BitConverter.ToUInt16(m_RxMessage, 8);
                 if (m_CommDevice.IsTargetBigEndian())
@@ -1304,15 +1300,15 @@ namespace Common.Communication
 
                 m_FaultDataFromTarget.Buffer = new Byte[m_FaultDataFromTarget.BufferSize];
 
-                // Copy the entire response into the fault data buffer for processing by calling method. "10" is the 
+                // Copy the entire response into the fault data buffer for processing by calling method. "10" is the
                 // offset of the actual data (header is 8 bytes in length and the 2 following bytes are the message size)
                 //               FROM ----------> TO-----
                 Buffer.BlockCopy(m_RxMessage, 10, m_FaultDataFromTarget.Buffer, 0, m_FaultDataFromTarget.BufferSize);
             }
 
+            Console.WriteLine("Get Fault Data Com Error =  " + commError);
             return commError;
         }
-
 
         /// <summary>
         /// Method responsible for getting the fault indexes of the oldest and newest faults
@@ -1390,7 +1386,6 @@ namespace Common.Communication
             return true;
         }
 
-
         /// <summary>
         /// Verifies Date parameters are within expected limits.
         /// </summary>
@@ -1418,8 +1413,6 @@ namespace Common.Communication
             // All is well with passed arguments
             return true;
         }
-
-
 
         /// <summary>
         /// Verifies time parameters are within expected limits. NOTE: any checks for less than 0 are superfluous

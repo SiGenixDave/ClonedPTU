@@ -4,9 +4,9 @@
     <StartArguments>MAPA</StartArguments>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
-    <StartArguments>BART -l4</StartArguments>
+    <StartArguments>MAPA</StartArguments>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
-    <StartArguments>BART -l4</StartArguments>
+    <StartArguments>MAPA</StartArguments>
   </PropertyGroup>
 </Project>

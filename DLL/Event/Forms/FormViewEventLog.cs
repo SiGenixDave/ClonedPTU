@@ -1,112 +1,114 @@
 #region --- Revision History ---
+
 /*
- * 
+ *
  *  This document and its contents are the property of Bombardier Inc. or its subsidiaries and contains confidential, proprietary information.
- *  The reproduction, distribution, utilization or the communication of this document, or any part thereof, without express authorization is strictly prohibited.  
+ *  The reproduction, distribution, utilization or the communication of this document, or any part thereof, without express authorization is strictly prohibited.
  *  Offenders will be held liable for the payment of damages.
- * 
+ *
  *  (C) 2010    Bombardier Inc. or its subsidiaries. All rights reserved.
- * 
+ *
  *  Solution:   Portable Test Unit
- * 
+ *
  *  Project:    Event
- * 
+ *
  *  File name:  FormViewEventLog.cs
- * 
+ *
  *  Revision History
  *  ----------------
  */
 
 #region - [1.0 to 2.4] -
-/* 
+
+/*
  *  Date        Version Author          Comments
  *  10/26/10    1.0     K.McD           1.  First entry into TortoiseSVN.
- * 
+ *
  *  12/01/10    1.1     K.McD           1.  Added the event handler for the F3-Save function key. This saves the currently selected event log to disk in XML format.
- *                                      2.  Added the event handler for the F8-Stream function key. This displays the form that allows the user to define the data 
+ *                                      2.  Added the event handler for the F8-Stream function key. This displays the form that allows the user to define the data
  *                                          stream parameters.
- * 
+ *
  *  01/07/11    1.2     K.McD           1.  Added support for the dynamic update of events using the IPollTarget interface and the ThreadPollEvent class.
- *                                      2.  Minor changes as follows: (1) added a number of constants, (2) changed the modifiers of a number of member variables so that 
- *                                          they can be accessed by child classes (3) changed the values of a number of constants and (4) modified a number of XML 
+ *                                      2.  Minor changes as follows: (1) added a number of constants, (2) changed the modifiers of a number of member variables so that
+ *                                          they can be accessed by child classes (3) changed the values of a number of constants and (4) modified a number of XML
  *                                          tags and comments.
  *                                      3.  Added the following properties: (1) MutexCommunicationInterface,  (2) EventRecordList, (3) EventCount and (4) Log.
- *                                      4.  Added mutexes to control the read/write access to the: (1) DataGridView control, (2) EventCount property and (3) 
+ *                                      4.  Added mutexes to control the read/write access to the: (1) DataGridView control, (2) EventCount property and (3)
  *                                          communication interface.
  *                                      5.  Added the date and time information labels.
- *                                      6.  Renamed the AddRecordsToDataGridView() method to AddEventRecordListToDataGridView() and included a call to the Sort() method 
+ *                                      6.  Renamed the AddRecordsToDataGridView() method to AddEventRecordListToDataGridView() and included a call to the Sort() method
  *                                          of the DataGridView control to ensure that the records are sorted by the selected field.
  *                                      7.  Modified the m_DataGridViewEventLog_CellContentDoubleClick() method to be a virtual method.
- *                                      8.  Modified the m_DataGridViewEventLog_SelectionChanged() method to be a virtual method and removed the section of code that 
- *                                          retrieved the event variables associated with the selected event from the VCU as this is no longer necessary because the 
- *                                          CommunicationEvent.GetEventRecord() method has been modified to include retrieval of the event variables associated with 
+ *                                      8.  Modified the m_DataGridViewEventLog_SelectionChanged() method to be a virtual method and removed the section of code that
+ *                                          retrieved the event variables associated with the selected event from the VCU as this is no longer necessary because the
+ *                                          CommunicationEvent.GetEventRecord() method has been modified to include retrieval of the event variables associated with
  *                                          the record.
  *                                      9.  Modified the ConvertToDataGridViewRow() method to accommodate the additional fields in the DataGridView control.
- *                                      10. Replaced the ClearDownloadedEventLog() method with the following methods: (1) ClearEventMemory() and (2) 
+ *                                      10. Replaced the ClearDownloadedEventLog() method with the following methods: (1) ClearEventMemory() and (2)
  *                                          ClearEventLogControls().
- *                                      11. Included support to: (1) save the event log to disk in XML format and (2) save all data streams associated with the current 
+ *                                      11. Included support to: (1) save the event log to disk in XML format and (2) save all data streams associated with the current
  *                                          event log to disk.
- * 
- *  01/12/11    1.3     K.McD           1.  Bug fix SNCR001.84. Added the second parameter to the call to the System.Threading.WaitHandle.WaitOne() method, as advised by 
- *                                          the following blog entries: 
- *                                              (1) http://www.mikeplate.com/missingmethodexception-and-waitone/ and (2) 
- *                                              (2) http://blog.darrenstokes.com/2009/03/30/watch-out-for-those-waitone-overloads-when-you-need-backwards-compatibility 
- * 
- *  01/14/11    1.4     K.McD           1.  Bug fix SNCR001.85. There appears to be a bug in the CheckFaultLogger() method of the PTUDLL322 dynamic link library in that 
- *                                          the event count value returned from the call can sometimes increment by the number of existing entries in the event log every 
- *                                          time that the call is made. This problem is sometimes cleared by calling the ClearEvent() method the same library, however, 
- *                                          in order to circumvent the problem the design of the dynamic update of the event log was modified to use the event index 
- *                                          value that is returned from the call instead as this value is correct. As part of this bug fix the EventIndex property 
+ *
+ *  01/12/11    1.3     K.McD           1.  Bug fix SNCR001.84. Added the second parameter to the call to the System.Threading.WaitHandle.WaitOne() method, as advised by
+ *                                          the following blog entries:
+ *                                              (1) http://www.mikeplate.com/missingmethodexception-and-waitone/ and (2)
+ *                                              (2) http://blog.darrenstokes.com/2009/03/30/watch-out-for-those-waitone-overloads-when-you-need-backwards-compatibility
+ *
+ *  01/14/11    1.4     K.McD           1.  Bug fix SNCR001.85. There appears to be a bug in the CheckFaultLogger() method of the PTUDLL322 dynamic link library in that
+ *                                          the event count value returned from the call can sometimes increment by the number of existing entries in the event log every
+ *                                          time that the call is made. This problem is sometimes cleared by calling the ClearEvent() method the same library, however,
+ *                                          in order to circumvent the problem the design of the dynamic update of the event log was modified to use the event index
+ *                                          value that is returned from the call instead as this value is correct. As part of this bug fix the EventIndex property
  *                                          was added to this class.
- * 
- *  01/18/11    1.5     K.McD           1.  Bug fix SNCR001.79. Modified the GetEventLog() method to update the StreamNumber property of the EventRecord class. If 
+ *
+ *  01/18/11    1.5     K.McD           1.  Bug fix SNCR001.79. Modified the GetEventLog() method to update the StreamNumber property of the EventRecord class. If
  *                                          the record does not have an associated data stream the stream number property will be set to CommonConstants.NotUsed.
- * 
- *  01/19/11    1.6     K.McD           1.  SNCR001.79/SNCR001.76. Added the StreamNumber property and made sure that it wrapped around back to 0 when the count reaches 
+ *
+ *  01/19/11    1.6     K.McD           1.  SNCR001.79/SNCR001.76. Added the StreamNumber property and made sure that it wrapped around back to 0 when the count reaches
  *                                          the maximum number of data streams that the VCU is capable of recording.
- * 
- *  01/26/11    1.7     K.McD           1.  Modified the GetEventRecord() method to use the DataStreamCount property of the current log to determine the value of 
+ *
+ *  01/26/11    1.7     K.McD           1.  Modified the GetEventRecord() method to use the DataStreamCount property of the current log to determine the value of
  *                                          the StreamNumber property.
- * 
- *                                      2.  Modified the m_ToolStripComboBox1_SelectedIndexChanged() method to get the current log directly from the SelectedItem 
- *                                          property of the ComboBox control. 
- * 
- *  01/31/11    1.8     K.McD           1.  Request - SNCR001.72. The user should have the ability to save an event log to an individual event log XML files or 
+ *
+ *                                      2.  Modified the m_ToolStripComboBox1_SelectedIndexChanged() method to get the current log directly from the SelectedItem
+ *                                          property of the ComboBox control.
+ *
+ *  01/31/11    1.8     K.McD           1.  Request - SNCR001.72. The user should have the ability to save an event log to an individual event log XML files or
  *                                          append to an existing file. Implemented the following modification to accommodate this request:
- * 
+ *
  *                                              a.  Refactored the Save, Clear and Reset function key event handlers.
- *                                              b.  As part of the refactoring process created the following methods: Save(), SaveAll(), SaveCurrent(), ClearOrReset(), 
+ *                                              b.  As part of the refactoring process created the following methods: Save(), SaveAll(), SaveCurrent(), ClearOrReset(),
  *                                                  ClearCurrent(), CheckForAppend().
  *                                              c.  Renamed a number of methods.
- * 
- *                                      2.  Modifications to accommodate the communication mutex introduced into the Common.CommunicationParent class in version 1.11 of 
+ *
+ *                                      2.  Modifications to accommodate the communication mutex introduced into the Common.CommunicationParent class in version 1.11 of
  *                                          Common.dll.
- * 
- *  02/02/11    1.9     K.McD           1.  Standardized the function key event handlers to: display the wait cursor, enable the Checked property of the function key and 
+ *
+ *  02/02/11    1.9     K.McD           1.  Standardized the function key event handlers to: display the wait cursor, enable the Checked property of the function key and
  *                                          clear any status message.
  *                                      2.  Added the DateTime and Log fields to the DataGridView control.
  *                                      3.  Added an event handler for the SortCompare event of the DataGridView control to control the sort order of the rows.
  *                                      4.  Modified a number of XML tags.
- * 
+ *
  *  02/15/11    1.9.1   K.McD           1.  Removed the StreamNumber property.
- *                                      2.  Modified the GetEventLog() method such that the StreamNumber parameter of each event record is no longer calculated as 
+ *                                      2.  Modified the GetEventLog() method such that the StreamNumber parameter of each event record is no longer calculated as
  *                                          this is now derived from the call to PTUDLL32.GetFaultHdr() method.
- * 
+ *
  *  02/21/11    1.9.2   K.McD           1.  Renamed and changed the modifiers of a number of delegates and methods.
  *                                      2.  Minor changes to a number of XML tags.
  *                                      3.  Included support for the FormGetStream() method which shows the progress of the data stream download.
  *                                      4.  Added the DataStreamCurrent property - required to retrieve any data stream downloaded using the FormGetStream class.
  *                                      5.  Renamed the 'Reset' function key to 'Initialize'.
  *                                      6.  Don't show the history and flags funtion keys until these features have been implemented.
- *                                      7.  Modified the Save, Clear and Reset function key event handlers to use the StartPolling/StopPolling() methods to control 
+ *                                      7.  Modified the Save, Clear and Reset function key event handlers to use the StartPolling/StopPolling() methods to control
  *                                          polling of the VCU for new events.
- *                                      8.  Deprecated the SaveCurrent() and ClearCurrent() methods. These methods are no longer required as the current log need not 
+ *                                      8.  Deprecated the SaveCurrent() and ClearCurrent() methods. These methods are no longer required as the current log need not
  *                                          be cleared when modifying the data stream parameters.
- *                                      9.  Bug - fix - SNCR001.102. Modified the GetEventLog() method to ignore any event where a match for the LOGID, TASKID and 
+ *                                      9.  Bug - fix - SNCR001.102. Modified the GetEventLog() method to ignore any event where a match for the LOGID, TASKID and
  *                                          EVENTID values returned from the VCU cannot be found in the EVENTS table of the data dictionary.
  *                                      10. Moved the GetFullyQualifiedFaultLOgFilename() methods to the Common.General class.
  *                                      11. Modified the SaveAll() method to restore the current log after saving the event logs and data streams.
- * 
+ *
  *  02/28/11    1.9.3   K.McD           1.  Modified a number of XML tags.
  *                                      2.  Removed the constants associated with the size of the DataGridView control margins.
  *                                      3.  Modified the values associated with the event variable control margins and the event variable control width.
@@ -126,174 +128,174 @@
  *                                      12. Include calls to the SuspendLayout() and PerformLayout() methods in the Exit() method.
  *                                      13. Changed the modifiers associated with a number of methods.
  *                                      14. Modified SaveAll() method to display the event variable list once all events have been saved.
- * 
- *  03/02/11    1.9.4   K.McD           1.  Added the FormatStringDateTime constant to define the string format that is to be used when converting a .NET DateTime 
+ *
+ *  03/02/11    1.9.4   K.McD           1.  Added the FormatStringDateTime constant to define the string format that is to be used when converting a .NET DateTime
  *                                          value to an entry in the DateTime column of the DataGridView control.
- * 
- *                                      2.  Modified the m_DataGridViewEventLog_SortCompare() method such that the value stored in the Log column of the DataGridView 
+ *
+ *                                      2.  Modified the m_DataGridViewEventLog_SortCompare() method such that the value stored in the Log column of the DataGridView
  *                                          control is ignored when determining the sort order.
- * 
+ *
  *                                      3.  Modified the signature of the SortBy() method such that only one fieldIndex parameter is passed. This modification is linked
  *                                          to the modification associated with (2).
- * 
- *                                      4.  Modified the GetEventLog() method such that the returned event record list is sorted in descending date/time order i.e. most 
- *                                          recent event first. This ensures that when the records are added to the DataGridView control the first row of the 
+ *
+ *                                      4.  Modified the GetEventLog() method such that the returned event record list is sorted in descending date/time order i.e. most
+ *                                          recent event first. This ensures that when the records are added to the DataGridView control the first row of the
  *                                          DataGridView control will be selected.
- * 
- *                                      5.  Added the CompareByDateTimeDescending() method. This is the Comparison<T> delegate used to sort the event record list by 
+ *
+ *                                      5.  Added the CompareByDateTimeDescending() method. This is the Comparison<T> delegate used to sort the event record list by
  *                                          date/time descending order.
- * 
+ *
  *  03/17/11    1.9.5   K.McD           1.  Modified a number of XML tags and comments.
  *                                      2.  Modified the width of the event variable user controls.
  *                                      3.  Added support for the WinHlp32 help engine to display the help diagnostic information for the events and event variables.
- *                                      4.  Modified the event handler for the DataGridView SelectionChanged event to close any FormShowFlags forms that may be 
+ *                                      4.  Modified the event handler for the DataGridView SelectionChanged event to close any FormShowFlags forms that may be
  *                                          open.
- * 
- *                                      5.  Modified the event handler for the DataGridView CellContentDoubleClick event to include a check to determine 
- *                                          which column of the DataGridView has been selected by the user and then either: (a) display the diagnostic help 
- *                                          information associated with the selected event or (b) download and display the fault log associated with the 
+ *
+ *                                      5.  Modified the event handler for the DataGridView CellContentDoubleClick event to include a check to determine
+ *                                          which column of the DataGridView has been selected by the user and then either: (a) display the diagnostic help
+ *                                          information associated with the selected event or (b) download and display the fault log associated with the
  *                                          selected event, as appropriate.
- * 
- *                                      6.  Refactored the event handler for the DataGridView CellContentDoubleClick event such that the code responsible for 
+ *
+ *                                      6.  Refactored the event handler for the DataGridView CellContentDoubleClick event such that the code responsible for
  *                                          downloading and displaying the fault log is now included in the newly created ShowFaultLog() method.
- * 
- *  03/21/11    1.9.6   K.McD           1.  Removed the Virtual modifier from the event handlers associated with the DataGridView 'SelectionChanged' and 
+ *
+ *  03/21/11    1.9.6   K.McD           1.  Removed the Virtual modifier from the event handlers associated with the DataGridView 'SelectionChanged' and
  *                                          'CellContentDoubleClick' events as these event handlers are no longer overridden in the FormOpenEventLog child class.
  *                                      2.  Added the Virtual modifier to the ShowFaultLog() method as this is now overridden in the FormOpenEventLog child class.
  *                                      3.  Added the member variable to record the number of common event variables per event associated with the current data
  *                                          dictionary.
- *                                      4.  Modified the ConfigureControls() method such that the individual event variable user controls are laid out on the panel 
- *                                          similar to rows on a DataGridView control. The first entry in the specified list of event variables, eventVariableList[0], 
- *                                          is positioned at row 0, the second at row 1 etc. Also modified the signature to allow the programmer to specify the starting 
+ *                                      4.  Modified the ConfigureControls() method such that the individual event variable user controls are laid out on the panel
+ *                                          similar to rows on a DataGridView control. The first entry in the specified list of event variables, eventVariableList[0],
+ *                                          is positioned at row 0, the second at row 1 etc. Also modified the signature to allow the programmer to specify the starting
  *                                          index in the list of event variables where configuration is to begin, 0 to configure all event variables in the list, etc.
- *                                      5.  Modified the DisplayEventVariableList() method such that only those event variable user controls which are specific to 
- *                                          the selected event are re-configured. The common event variable user controls are no longer re-configured for each selected 
+ *                                      5.  Modified the DisplayEventVariableList() method such that only those event variable user controls which are specific to
+ *                                          the selected event are re-configured. The common event variable user controls are no longer re-configured for each selected
  *                                          event.
- *                                      6.  Added the CompareByDateTimeAscending() method to allow the list of event records to be sorted in ascending order i.e. oldest 
+ *                                      6.  Added the CompareByDateTimeAscending() method to allow the list of event records to be sorted in ascending order i.e. oldest
  *                                          event first.
- * 
+ *
  *  03/28/11    1.9.7   K.McD           1.  Modified the event handlers associated with the Save and Clear function keys to clear the status message on completion.
  *                                      2.  Modified the names of a number of local variables.
- * 
- *  04/06/11    1.9.8   K.McD           1.  Modified the class constructor to include function keys that: (a) allow the user to configure the event flags associated 
+ *
+ *  04/06/11    1.9.8   K.McD           1.  Modified the class constructor to include function keys that: (a) allow the user to configure the event flags associated
  *                                          with the current log and (b) display the event history.
- * 
+ *
  *                                      2.  Added the event handlers associated with the function keys mentioned in item 1.
- * 
+ *
  *  04/08/11    1.9.9   K.McD           1.  Corrected the caption parameter associated with a number of message boxes.
- *  
+ *
  *  07/20/11    1.9.10  K.McD           1.  Modified the signature of the constructor to use the ICommunicationParent interface.
- *  
- *  07/27/11    1.10    K.McD           1.  SNCR001.148. Bug fix associated with the CTA site visit on 15th July 2011. An exception was thrown when the user selected 
- *                                          an event from the downloaded event log. Further investigation showed that the exception was thrown because the previously 
+ *
+ *  07/27/11    1.10    K.McD           1.  SNCR001.148. Bug fix associated with the CTA site visit on 15th July 2011. An exception was thrown when the user selected
+ *                                          an event from the downloaded event log. Further investigation showed that the exception was thrown because the previously
  *                                          selected event had no event secific event variables associated with it.
- *                                          
- *                                              (a) Changed the modifier of the member variable that stores the number of common event variables recorded for each 
+ *
+ *                                              (a) Changed the modifier of the member variable that stores the number of common event variables recorded for each
  *                                                  system event to protected.
- *                                                  
- *                                              (b) Modified the DisplayEventVariables() method to check whether the number of controls added to the Panel control 
- *                                                  associated with the list of event variables for the previous event was greater than or equal to the number of 
+ *
+ *                                              (b) Modified the DisplayEventVariables() method to check whether the number of controls added to the Panel control
+ *                                                  associated with the list of event variables for the previous event was greater than or equal to the number of
  *                                                  common event variables rather than simply greater than.
- *                                                  
- *                                      2.  SNCR001.135. Bug fix associated with the event log displaying the incorrect number of events in the current list if the list 
- *                                          is empty. Modified the m_ToolStripComboBox1_SelectedIndexChanged() method to update the label that shows the number of 
+ *
+ *                                      2.  SNCR001.135. Bug fix associated with the event log displaying the incorrect number of events in the current list if the list
+ *                                          is empty. Modified the m_ToolStripComboBox1_SelectedIndexChanged() method to update the label that shows the number of
  *                                          events in the list to display zero if the list is empty.
- *                                          
- *  08/10/11    1.11    Sean.D          1.  Included support for offline mode. Modified the constructor to conditionally choose CommunicationEvent or 
+ *
+ *  08/10/11    1.11    Sean.D          1.  Included support for offline mode. Modified the constructor to conditionally choose CommunicationEvent or
  *                                          CommunicationEventOffline depending upon the current mode.
- *                                          
+ *
  *                                      2.  Minor adjustments to the Visible property of the event variables panel to improve screen build/clear appearance.
- *                                      
+ *
  *  08/24/11    1.12    K.McD           1.  Added a number of constants and renamed a number of variables.
  *                                      2.  Modified the SetPauseAndWait() method to include a timeout.
  *                                      3.  Included support to monitor the watchdog associated with the thread that is responsible for communication with the target.
  *                                      4.  Included checks on the success of the call to the IPollTarget.SetPauseAndWait() method in a number of methods.
  *                                      5.  Removed the deprecated methods.
- *                                      
- *  10/26/11    1.13    K.McD           1.  SNCR002.41. Added checks to the event handlers associated with all ToolStripButton controls to ensure that the event handler 
+ *
+ *  10/26/11    1.13    K.McD           1.  SNCR002.41. Added checks to the event handlers associated with all ToolStripButton controls to ensure that the event handler
  *                                          code is ignored if the Enabled property of the control is not asserted.
- *                                          
+ *
  *  11/23/11    1.14    K.McD           1.  Modified the FormViewEventLog class.
  *                                              (a) Ensured that all event handler methods were detached.
- *                                              (b) Modified the Escape_Click() and Exit() methods to ensure that no member variables were referenced after the Close() 
+ *                                              (b) Modified the Escape_Click() and Exit() methods to ensure that no member variables were referenced after the Close()
  *                                                  method had been called.
- *                                                  
- *  07/24/13    1.14.1  K.McD           1.  Modified the event handler for the F8-Stream function key. Now passes a reference to the current event log when instantiating 
- *                                          the  FormConfigureFaultLogParameters class so that the number of watch variables associated with the current event log are 
+ *
+ *  07/24/13    1.14.1  K.McD           1.  Modified the event handler for the F8-Stream function key. Now passes a reference to the current event log when instantiating
+ *                                          the  FormConfigureFaultLogParameters class so that the number of watch variables associated with the current event log are
  *                                          known by the form that is used to configure the watch variables and a check may be made to ensure that the selected workset
  *                                          does not include more watch variables than can be supported by the event log. This requirement is only associated with
  *                                          projects that do not record a fixed number of watch variables for each event log.
- *                                          
+ *
  *                                      2.  Modified the Exit() method to close the communication port and to set the mode to configuration mode if there is a
  *                                          communication fault or the watchdog has tripped i.e. the port is locked. Modified to be consistent with the FormViewWatch
  *                                          class.
- *                                          
+ *
  *  04/07/15    1.15    K.McD           References
  *                                      1.  Upgrade the PTU software to extend the support for the R188 project as defined in purchase order
  *                                          4800010525-CU2/19.03.2015.
- *                                          
- *                                          1.  Changes to address the items outlined in the minutes of the meeting between BTPC, 
+ *
+ *                                          1.  Changes to address the items outlined in the minutes of the meeting between BTPC,
  *                                              Kawasaki Rail Car and NYTC on 12th April 2013 - MOC-0171:
- *                                              
+ *
  *                                              1.  MOC-0171-29/34. Kawasaki requested that any function that is not available to the current mode, either Maintenance
  *                                                  or Administrative, should not be displayed, or be 'greyed out'. BTPC agreed to review the software to ensure that
  *                                                  non-active menu items are ‘greyed out’ or not shown.
- *                                              
+ *
  *                                                  As a result of the review, it is proposed that the following modifications are carried out:
- *                                              
+ *
  *                                                  1.  The 'Select Data Dictionary' menu option should only visible when logged in as a BT engineer (Factory).
  *                                                      Also when visible, it should only be enabled when not in onlide, offline or self test mode.
- *                                                      
+ *
  *                                                  2.  When in Self Test mode only the 'File/Exit', 'Help' and 'Login' main menu options should be enabled.
- *                                                  
+ *
  *                                                  3.  When displaying event logs only the File/Exit', 'Configure/Worksets/Data Stream', 'Configure/Enumeration',
  *                                                      'Help', and 'Login' main menu options should be enabled.
- *                                                          
+ *
  *                                                  4.  When the Watch Window is paused or data is being recorded only the 'File/Exit', 'Help' and 'Login' main menu
  *                                                      options should be enabled.
  *
  *                                      Modifications
  *                                      1.  Modified the image resource references specified in the calls to the DisplayFunctionKey() method for function keys
  *                                          F6, F7, F8 in the constructor.
- *                                          
- *                                      2.  Modified the 'Shown' event handler to disable the appropriate menu options using calls to the SetMenuEnabled() method. 
+ *
+ *                                      2.  Modified the 'Shown' event handler to disable the appropriate menu options using calls to the SetMenuEnabled() method.
  */
 
 /*
  *  04/15/15    1.16    K.McD           References
  *                                      1.  Upgrade the PTU software to extend the support for the R188 project as defined in purchase order 4800010525-CU2/19.03.2015.
- * 
+ *
  *                                          1.  NK-U-6505 Section 5.1.3. Log File Naming. The filename of all event logs, fault logs, real time data etc will be modified
  *                                              to meet the KRC specification. This modification will be specific to the KRC project; for all other projects, the
  *                                              current naming convention will still apply.
- *                                              
+ *
  *                                          2.  NK-U-6505 Section 1.7.6. Data Sorting Capabilities. The proposal is to include an additional column in the spreadsheet
  *                                              that is used to view event logs (File/Open/Event Logs) that identifies the event log associated with the entry e.g.
  *                                              Maintenance, Engineering etc and allow the user to sort by this column. The format of the event log will obviously also
  *                                              have to be modified to include this information.
- *                                              
+ *
  *                                      2.  The 'F2-Print' function key should be enabled when viewing event logs.
- *                                      
+ *
  *                                      3.  The height of the event variable user control and the DataGridView Row Height must be increased to allow characters such as
  *                                          'g', 'j', 'p', 'q', 'y' to be displayed correctly when using the default font.
- *                                          
+ *
  *                                      4.  SNCR - R188 PTU [20-Mar-2015] Item 12. While viewing a saved event log, it was noticed that the event variables associated
  *                                          with some of the selected saved events were incorrect. On further investigation it was discovered that a bug has been
  *                                          introduced as a result of the changes made to address item 11 of SNCR - R188 PTU [20-Mar-2015].
- *                                      
+ *
  *                                          Initially, before the changes associated with item 11, each event index in the DataGridView control was unique,  therefore
  *                                          it was relatively easy to find the EventRecord in the list of EventRecords that matched the selected row of the DataGridView
  *                                          by doing a find on the event index e.g.
- *                                      
+ *
  *                                          short eventIndex = short.Parse((string)dataGridViewRow.Cells[ColumnIndexEventIndex].Value);
  *                                          // Find the entry in the list that matches the event index.
  *                                          EventRecord selectedEventRecord = EventRecordList.Find(delegate(EventRecord eventRecord)
- *                                          { return eventRecord.EventIndex == eventIndex; }); 
+ *                                          { return eventRecord.EventIndex == eventIndex; });
  *
  *                                          As a result of the changes associated with item 11 the event index value is no longer unique, therefore it is necessary to do
  *                                          a search on the following fields of the row/event record: date/time, event index, event name, log name, car identifier
  *                                          in order to match the selected row with the correct event record.
- *                                              
+ *
  *                                      Modifications
  *                                      1.  Modified the signature in the call to the General.DeriveName() method in the Save() method. The original
  *                                          signature has been removed in order to simplify file naming. - Ref. 1.1.
@@ -310,22 +312,22 @@
  *                                      7.  Included the method FindEventRecord() that finds an event record in the specified event record list that matches
  *                                          the specified row of the DataGridView by matching: date/time, event index, event name, log name and car identifier.
  *                                      8.  Replaced the Find shown in reference 4, above, with a call to the FindEventRecord() method in the following methods:
- *                                      
+ *
  *                                              m_MenuItemShowDefinition_Click()
  *                                              m_DataGridViewEventLog_SelectionChanged()
- *                                              m_DataGridViewEventLog_CellContentDoubleClick()   
- *                                              
+ *                                              m_DataGridViewEventLog_CellContentDoubleClick()
+ *
  *                                      9.  Added a check to the 'Resize' event handler to return from the method if the class has been disposed.
  */
 
 /*
  *  05/11/15    2.0     K.McD           References
  *                                      1.  Upgrade the PTU software to extend the support for the R188 project as defined in purchase order 4800010525-CU2/19.03.2015.
- *                                      
+ *
  *                                          1.  NK-U-6505 Section 2.2. Mandatory MDI Global Screen Representation - Part 1. The proposal is to add additional status
  *                                              labels to the status strip at the bottom of the PTU screen to include ‘Log: [Saved | Unsaved]’ and
  *                                              ‘Wibu-Key: [Present | Not Present]’.
- *  
+ *
  *                                      Modifications
  *                                      1.  Added the m_LogSaved flag.
  *                                      2.  Modified the FormViewEventLog_Shown() event handler to synchronise the m_LogSaved flag and the MainWindow.LogSaved
@@ -335,48 +337,48 @@
  *                                          m_LogSaved flag if this is true.
  *                                      4.  Modified the SaveAll() method to keep a record of the most recent saved event in the MostRecentEventSaved project
  *                                          settings.
- * 
+ *
  */
 
 /*
  *  07/13/15    2.1     K.McD           References
  *                                      1.  Upgrade the PTU software to extend the support for the R188 project as defined in purchase order 4800010525-CU2/19.03.2015.
- *                                      
+ *
  *                                          1. NK-U-6505 Section 2.2. Mandatory MDI Global Screen Representation - Part 1. Following a conference call on 9-Jul-15,
  *                                             the current proposal is to extend the options associated with the log saved status StatusLabel to include:
  *                                             ‘[Saved | Unsaved | Unknown | Not Applicable (-)]’. The log saved StatusLabel should also operate on a per
  *                                             car basis.
- *                                             
+ *
  *                                          2.  MOC-0171-29/34. Kawasaki requested that any function that is not available to the current mode, either Maintenance
  *                                              or Administrative, should not be displayed, or be 'greyed out'. BTPC agreed to review the software to ensure that
  *                                              non-active menu items are ‘greyed out’ or not shown.
- *                                              
+ *
  *                                              As a result of a further review, it is proposed that the following modifications are carried out:
- *                                              
+ *
  *                                                  1.  The 'Select Data Dictionary' menu option should only visible when logged in as a BT engineer (Factory).
  *                                                      Also when visible, it should only be enabled when not in onlide, offline or self test mode.
- *                                                      
+ *
  *                                                  2.  When in Self Test mode only the 'File/Exit', 'Help' and 'Login' main menu options should be enabled.
- *                                                  
+ *
  *                                                  3.  When displaying event logs only the File/Exit', 'Configure/Worksets/Data Stream', 'Configure/Enumeration',
  *                                                      'Help', and 'Login' main menu options should be enabled.
- *                                                          
+ *
  *                                                  4.  When displaying the Watch Window only the 'File/Exit', 'Configure/Worksets/Data Stream', 'Configure/Enumeration',
  *                                                      'Help', and 'Login' main menu options should be enabled.
- *                                              
+ *
  *                                      2.  Review of the code discovered that a number of void methods did not return if the Dispose() method had been called.
- *                                          
+ *
  *                                      3.  Following the conference call on 9-Jul-15, it was decided that the Clear and Initialize event log functions should only
  *                                          be available to the Engineering account.
- *                                          
- *                                      4.  Bug Fix - SNCR - R188 PTU [20-Mar-2015]. If the user tries to clear or initialize an empty event log and opts to save 
+ *
+ *                                      4.  Bug Fix - SNCR - R188 PTU [20-Mar-2015]. If the user tries to clear or initialize an empty event log and opts to save
  *                                          the event log first, an exception is thrown (ER-150712).
- *                                              
+ *
  *                                      Modifications
  *                                      1.  Added a check to all methods that return a void to return if the Dispose() method has been called. - Ref.: 2.
  *                                      2.  Added the KeyInitializeEventLog constant to access the InitializeEvent Log function. - Ref.: 3.
  *                                      3.  Added the m_EventLogSavedStatus variable.
- *                                      4.  Modified the signature of the class to include a reference to the MainWindow interface. This allows the 
+ *                                      4.  Modified the signature of the class to include a reference to the MainWindow interface. This allows the
  *                                          properties of the MainWindow interface to be accessed within the constructor. Ref.: 1.1.
  *                                      5.  Included a call in the constructor to initialize the MostRecentDownloadedEventsSaved setting if it is a null value.
  *                                          Ref.: 1.1.
@@ -401,11 +403,11 @@
  *  07/28/15    2.2     K.McD           References
  *                                      1.  Bug Fix - SNCR - R188 PTU [20-Mar-2015] Item 24. On selecting the ‘Exit’ function key on the ‘Diagnostics/Event Log’ and
  *                                          the ‘Diagnostics/Self Tests’ screens, the cursor doesn’t go to the Cursors.WaitCursor cursor on the R188 project.
- *                                          
+ *
  *                                      Modifications
  *                                      1.  Modified the Exit() method to use ‘Cursor.Current = Cursors.WaitCursor’ rather than ‘this.Cursor = Cursors.WaitCursor’.
  *                                      - Ref.: 1.
- *                                      
+ *
  *  09/30/15    2.3     K.McD       References
  *                                  1.  Bug Fix - SNCR - R188 [20-Mar215] Item 32. The R188 project requires that the PTE can be used on a 1024 x 768 laptop.
  *                                      When release 6.14 is displayed at a resolution of 1024 x 768: (a) the ‘Help’ and ‘Exit’ buttons at the bottom of the control panel
@@ -414,7 +416,7 @@
  *                                      is not fully visible because of the additional ‘real-estate’ occupied by the ‘[Log]’ column of the DataGridView
  *                                      control; and (d) the watch worksets can only use 2 of the 3 available columns if all watch variables in the workset are to be
  *                                      visible without resorting to the horizontal scroll bar.
- *                                      
+ *
  *                                  Modifications
  *                                  1.  Modified the FormViewEventLog_Shown() method to add 3 pixels to the bottom of the 'm_PanelEventVariableHeader' Padding property
  *                                      to ensure horizontal alignment with the DataGridView rows.
@@ -422,47 +424,49 @@
  *                                  3.  Changed the value of the 'HeightEventControl' constant from 28 to 22 to ensure horizontal alignment with the DataGridView rows.
  */
 
-/* 
+/*
  *  02/03/16    2.4     D.Smail     References
  *                                  1.  Bug Fix - SNCR - R188 [20-Mar215] Item 37. Fixed issues associated with logging and displaying real time events while
  *                                      displaying the event viewer. Updated the events sub-system to support real time events (events that occur while viewing the
  *                                      event viewer) and give the ability to add and remove events. The ability to remove events from the display is needed when
  *                                      the embedded target event load has reached its max.
- *                                      
+ *
  *                                  Modifications
  *                                  1.  Renamed the m_EventIndex member variable and the EventIndex property to m_NewEventIndex and NewEventIndex respectively.
  *                                  2.  Added the m_OldEventIndex member variable and OldEventIndex property.
  *                                  3   Changed the signature of the AddList() method to include the eventsToRemove parameter and updated any calls to AddList()
  *                                      to include this new parameter.
- *                                      
- *                                      
- * 
+ *
+ *
+ *
  */
+
 #endregion - [1.0 to 2.4] -
 
 #region - [2.5] -
+
 /*
  *  03/15/16    2.5     K.McD       References
  *                                  1.  PTU Modifications to Support the Requirements Defined in the San Francisco Bay Area Rapid Transport (BART) PTU Generic
  *                                      Requirements and Interface Description document (071-ICD-0011).
- *                                      
+ *
  *                                      1.  [REQ 7] - The PTU software shall offer the possibility to view the fault records and to export the result as a Comma-Separated
  *                                          Value (CSV) file format, as per RFC 4180. The PTU software shall resolve the event IDs and subsystem IDs and store them in
  *                                          human readable format in additional columns within the CSV file. Event counters shall be stored in a separate CSV file.
  *                                          The columns of the CSV file shall follo the event log file format definition in 071-ICD-0004 [2], Section 3.1, Table 12
  *                                          (Counters) and Table 13 (Event Records).
- *                                          
+ *
  *                                  Modifications
  *                                  1.  Added the call to FileHandling.Serialize<EventLogFile_t>() in the SaveAll() method to generate the CSV file corresponding to the
  *                                      event log.
- *                                  
+ *
  */
 
 /*
  *  04/14/2016  2.5.1  K.McD       References
  *                                  1.  Conference Call 4th April 2016 - CSV File generation is to be controlled by a bit within the FunctionFlags bitmask field of
  *                                      the CONFIGUREPTU table of the data dictionary.
- *                                  
+ *
  *                                  Modifications
  *                                  1.  Modified the SaveAll() method to create the CSV file if the GenerateCSV property of the Parameter static class is asserted.
  */
@@ -477,7 +481,7 @@
  *                                      windows applications, even if the user uses the command to minimize the Portable Test Application Window.
  *                                  4.  Bug Fix - SNCR-PTU [01 Mar 2016] - Item 22. On the event screen, modify the width of the event variable user control to allow
  *                                      for a vertical scroll bar.
- *                                      
+ *
  *                                  Modifications
  *                                  1.  Modified the ConfigureControls() method to set the ForeColorValueFieldZero and ForeColorValueFieldNonZero properties
  *                                      of the eventVariableControl control to Color.Black. - Ref.: 2.
@@ -492,83 +496,90 @@
  *  09/09/2016  2.5.3   K.McD       References
  *                                  1.  PTE Changes - List 5-17-2016.xlsx Item 19, 20, 28. Make the Chart Recorder, Data Stream and Watch Window configuration
  *                                      available from the 'Configure' drop-down menu and remove the 'Manage' window completely.
- *                                  
+ *
  *                                  Modifications
  *                                  1.  Modified the form 'Shown' event handler to disable the 'Configure/Data Stream', 'Configure/Watch Window' and
  *                                      'Configure/Chart Recorder' menu options while this form is on display. The fault log data stream associated with each event log
  *                                      should be uploaded using the 'F8-Stream' ToolStripButton control, not the 'Configure/Data Stream' menu option.
- * 
+ *
  */
+
 #endregion - [2.5] -
 
 #region - [2.6] -
+
 /*
  *  02/10/17    2.6.1   D.Smail     Modifications
  *                                  1.  Made changes to the form so that when communication is lost between the PTU and VCU, all buttons are disabled
  *                                      (besides Home) to indicate to the user that he/she must go back to the Home Screen and attempt to reconnect to
- *                                      the VCU. 
- *                                  
+ *                                      the VCU.
+ *
  *                                  Bug Fix
- *                                  1.  When navigating back to the Home screen, all buttons will now be disabled on the Home 
+ *                                  1.  When navigating back to the Home screen, all buttons will now be disabled on the Home
  *                                      Screen when communications is lost. Prior to this change, the Home Screen still had Watch, Event,
  *                                      Test, and Sys Info buttons enabled even after communications was lost.
  *
  *  02/17/17    2.6.2   D.Smail     Modifications
  *                                  1.  When communication is lost to the target hardware, disable all controls
- *                                      except the "Home" button. This includes the ability to select the Data Dictionary as well as 
+ *                                      except the "Home" button. This includes the ability to select the Data Dictionary as well as
  *                                      the ability to sort previously downloaded events (the reason being is the message bar is updated when
  *                                      sorting and the "Loss oF Communications" is removed).
  *                                      the Watch Variables.
  *                                  2. When communication is lost when trying to save event logs, the code now
- *                                     does not try to re-establish communication with the target hardware. It just 
+ *                                     does not try to re-establish communication with the target hardware. It just
  *                                     flags the error with a Message Box an if the polling for new events fails
  *                                     because of a communication error, then the user will be informed with
  *                                     a message in the Message status and all controls will be disabled.
- *                                     
+ *
  *  02/25/17    2.6.3   D.Smail     Modifications
- *                                  1.  When communication is lost to the target hardware, inform the Main Window of 
+ *                                  1.  When communication is lost to the target hardware, inform the Main Window of
  *                                      this event by making the Main Window's Communication Interface = null.
- *                                  2.  Upon exiting the Event Form, inform the Main Window to resume polling the 
+ *                                  2.  Upon exiting the Event Form, inform the Main Window to resume polling the
  *                                      target hardware.
- * 
+ *
  */
+
 #endregion - [2.6] -
+
 #region - [2.7] -
+
 /*
  *  06/05/17    2.7.1   D.Smail     Bug Fix
- *                                  1.  When modifying many event/stream flags which take many messages to/from the logic, the 
+ *                                  1.  When modifying many event/stream flags which take many messages to/from the logic, the
  *                                      PTE UI was effectively "suspended" while all of the messaging was taking place. However
  *                                      the Windows Timer was stiill "firing" an placing its event on the UI thread event queue.
  *                                      When all of this messaging was over, there were lots of Windows Timer events waiting to be
- *                                      serviced. Each timer event that was serviced was decrementing the target watchdog count 
+ *                                      serviced. Each timer event that was serviced was decrementing the target watchdog count
  *                                      and therefore causing a "timeout" to occur.
- *                                      
+ *
  *                                      A change was made to the code to disable the Windows Timer from firing; therefore no events
- *                                      were palced on the UI queue. 
- *                                      
+ *                                      were palced on the UI queue.
+ *
  *                                      NOTES: Testing was performed to ensure a timeout event still occurred if a cable was removed
  *                                      (target comm lost). The bug existed for both serial and TCP communication
  *
  */
 /*
  * 06/23/2017  2.7.2    Vgott      References
- *                                  1.PTE Changes - Change the default filename structure for the BART PTU Application to include the Truck ID, Event Log variable 
- *                                  called “Truck Type”, which can be obtained from the first event structure.  The Truck ID is either “X” or “Y”.  The change will be 
+ *                                  1.PTE Changes - Change the default filename structure for the BART PTU Application to include the Truck ID, Event Log variable
+ *                                  called “Truck Type”, which can be obtained from the first event structure.  The Truck ID is either “X” or “Y”.  The change will be
  *                                  to append the Car Number with either “X” or “Y”.
- *                                  
+ *
  *                                  Modifications
  *                                  1.  Get the truck type from the event record list to and passed the truck type parameter to DeriveName() for the default file structure of EventLogs.
  */
 
- /*                                  
- * 09/12/2017   2.7.3   Vgott     Modifications
- *                                  1.  Disabled Menu items KeyMenuItemDiagnostics and KeyMenuItemView. 
- */
-/*                                  
+/*
+* 09/12/2017   2.7.3   Vgott     Modifications
+*                                  1.  Disabled Menu items KeyMenuItemDiagnostics and KeyMenuItemView.
+*/
+/*
  * 01/22/2019   2.7.4   D.Smail   Modifications
  *                                  1.  Fixed the issue when user selects an event log from the pull-down menu list box.
  */
-#endregion- [2.7] -
+
+#endregion - [2.7] -
+
 #endregion --- Revision History ---
 
 using System;
@@ -591,29 +602,34 @@ using Event.Properties;
 namespace Event.Forms
 {
     #region --- Delegates ---
+
     /// <summary>
     /// A delegate for a method that has generic list of event records as an input parameter and does not return a value.
     /// </summary>
     /// <param name="eventRecordList">The list of <c>EventRecord</c> types.</param>
     /// <param name="eventsToRemove">The number of events that are to be removed from the <c>>DataGridView</c> control.</param>
     public delegate void AddListDelegate(List<EventRecord> eventRecordList, uint eventsToRemove);
+
     #endregion --- Delegates ---
 
     /// <summary>
-    /// A form to allow the user to: (1) view and save the selected event log, (2) view the event variables associated with an individual event and (c) call the 
+    /// A form to allow the user to: (1) view and save the selected event log, (2) view the event variables associated with an individual event and (c) call the
     /// form that displays the fault log associated with an individual event, if available.
     /// </summary>
     public partial class FormViewEventLog : FormPTU, IPollTarget, ICommunicationInterface<ICommunicationEvent>
     {
         #region --- Delegates ---
+
         /// <summary>
         /// A delegate for a method that takes no parameters and does not return a value.
         /// </summary>
         /// <returns></returns>
         public delegate void ZeroParameterDelegate();
+
         #endregion --- Delegates ---
 
         #region --- Constants ---
+
         /// <summary>
         /// The interval, in ms, between successive display updates. Value: 500 ms.
         /// </summary>
@@ -676,6 +692,7 @@ namespace Event.Forms
         private const string False = "false";
 
         #region - [DataGridView Column Indices] -
+
         /// <summary>
         /// The event index column index. Value: 0;
         /// </summary>
@@ -730,16 +747,20 @@ namespace Event.Forms
         /// The stream available image column index. Value: 10.
         /// </summary>
         protected const int ColumnIndexStreamAvailableImage = 10;
+
         #endregion - [DataGridView Column Indices] -
 
         #region - [Heights] -
+
         /// <summary>
         /// The height, in pixels, of the event variable user control. Value: 22.
         /// </summary>
         protected const int HeightEventControl = 22;
+
         #endregion - [Heights] -
 
         #region - [Margins] -
+
         /// <summary>
         /// The right margin to be applied to the <c>DataGridView</c> control. Value: 2.
         /// </summary>
@@ -764,9 +785,11 @@ namespace Event.Forms
         /// The bottom margin associated with the event variable user control. Value: 1.
         /// </summary>
         protected const int MarginBottomEventControl = 1;
+
         #endregion - [Margins] -
 
         #region - [Widths] -
+
         /// <summary>
         /// The width, in pixels, of the variable name field of the event variable user control. Value: 190.
         /// </summary>
@@ -781,10 +804,13 @@ namespace Event.Forms
         /// The width, in pixels, of the units field of the watch variable user control. Value: 100.
         /// </summary>
         protected const int WidthEventControlUnitsField = 100;
+
         #endregion - [Widths] -
+
         #endregion --- Constants ---
 
         #region --- Member Variables ---
+
         /// <summary>
         /// Mutex to control read/write access to the <c>DataGridView</c> control.
         /// </summary>
@@ -816,8 +842,8 @@ namespace Event.Forms
         protected List<EventRecord> m_EventRecordList = new List<EventRecord>();
 
         /// <summary>
-        /// The number of common event variables associated with each event. These are the event variables contained within the STRUCT generic list corresponding to 
-        /// structure identifier 0, less those event variables defined as header event variables.  
+        /// The number of common event variables associated with each event. These are the event variables contained within the STRUCT generic list corresponding to
+        /// structure identifier 0, less those event variables defined as header event variables.
         /// </summary>
         protected int m_CommonEventVariableCount;
 
@@ -827,7 +853,7 @@ namespace Event.Forms
         private Log m_Log;
 
         /// <summary>
-        /// The saved status of the event logs. 
+        /// The saved status of the event logs.
         /// </summary>
         private EventLogSavedStatus m_EventLogSavedStatus = EventLogSavedStatus.Undefined;
 
@@ -857,6 +883,7 @@ namespace Event.Forms
         private DataStream_t m_DataStream;
 
         #region - [Communication] -
+
         /// <summary>
         /// Reference to the class that is responsible for polling the VCU for new events.
         /// </summary>
@@ -868,6 +895,7 @@ namespace Event.Forms
         private long m_PacketCount;
 
         #region - [Watchdog] -
+
         /// <summary>
         /// A record of the watchdog count. Used to determine if the thread on which the polling is carried out has locked.
         /// </summary>
@@ -882,6 +910,7 @@ namespace Event.Forms
         /// The countdown to the watchdog trip.
         /// </summary>
         private int m_WatchdogTripCountdown;
+
         #endregion - [Watchdog] -
 
         /// <summary>
@@ -898,10 +927,13 @@ namespace Event.Forms
         /// Reference to the selected communication interface.
         /// </summary>
         private ICommunicationEvent m_CommunicationInterface;
+
         #endregion - [Communication] -
+
         #endregion --- Member Variables ---
 
         #region --- Constructors ---
+
         /// <summary>
         /// Initializes a new instance of the class. Zero parameter constructor.
         /// </summary>
@@ -913,8 +945,8 @@ namespace Event.Forms
         }
 
         /// <summary>
-        /// Initializes a new instance of the class. Initializes: (1) the communication interface, (2) the size of each control, (3) the 
-        /// function keys, (4) the <c>ComboBox</c> control (5) the display update timer and (6) the title. 
+        /// Initializes a new instance of the class. Initializes: (1) the communication interface, (2) the size of each control, (3) the
+        /// function keys, (4) the <c>ComboBox</c> control (5) the display update timer and (6) the title.
         /// </summary>
         /// <param name="communicationInterface">Reference to the communicaton interface that is to be used to communicate with the VCU.</param>
         /// <param name="mainWindow">Reference to the main window.</param>
@@ -953,6 +985,7 @@ namespace Event.Forms
             m_MutexEventIndex = new Mutex();
 
             #region - [Size Definitions] -
+
             m_EventVariableControlSize = new VariableControlSize_t();
             m_EventVariableControlSize.Margin.Left = MarginLeftEventControl;
             m_EventVariableControlSize.Margin.Right = MarginRightEventControl;
@@ -962,9 +995,11 @@ namespace Event.Forms
             m_EventVariableControlSize.WidthValueField = WidthEventControlValueField;
             m_EventVariableControlSize.WidthUnitsField = WidthEventControlUnitsField;
             m_EventVariableControlSize.Height = HeightEventControl;
+
             #endregion - [Size Definitions] -
 
             #region - [Function Keys] -
+
             // Escape - Exit
             // F1 - Help
             // F2 - Print
@@ -980,6 +1015,7 @@ namespace Event.Forms
             DisplayFunctionKey(F6, Resources.FunctionKeyTextFlags, Resources.FunctionKeyToolTipFlags, Resources.ConfigureEventFlags);
             DisplayFunctionKey(F7, Resources.FunctionKeyTextHistory, Resources.FunctionKeyToolTipHistory, Resources.EventHistory);
             DisplayFunctionKey(F8, Resources.FunctionKeyTextSetupStream, Resources.FunctionKeyToolTipSetupStream, Resources.Modify);
+
             #endregion - [Function Keys] -
 
             // InformationLabel 1  - Date
@@ -990,6 +1026,7 @@ namespace Event.Forms
             DisplayLabel(InformationLabel3, Resources.InformationLegendEventCount, Color.FromKnownColor(KnownColor.Info));
 
             #region - [ComboBox] -
+
             m_ToolStripComboBox1.Visible = true;
             m_ToolStripLegendComboBox1.Text = Resources.LegendCurrentEventLog;
             m_ToolStripLegendComboBox1.Visible = true;
@@ -1003,17 +1040,19 @@ namespace Event.Forms
                     m_ToolStripComboBox1.Items.Add(Lookup.LogTable.Items[recordIndex]);
                 }
             }
-                        
+
             #endregion - [ComboBox] -
 
             #region - [Display Timer] -
+
             m_TimerDisplayUpdate = new System.Windows.Forms.Timer();
             m_TimerDisplayUpdate.Tick += new EventHandler(DisplayUpdate);
             m_TimerDisplayUpdate.Interval = IntervalDisplayUpdateMs;
             m_TimerDisplayUpdate.Enabled = true;
             m_TimerDisplayUpdate.Stop();
+
             #endregion - [Display Timer] -
-            
+
             m_ToolStripComboBox1.SelectedIndex = InitialLogIndex;
 
             // Initialize the watchdog trip countdown.
@@ -1021,9 +1060,11 @@ namespace Event.Forms
 
             m_CommonEventVariableCount = Lookup.EventTable.CommonEventVariableCount;
         }
+
         #endregion --- Constructors ---
 
         #region --- Cleanup ---
+
         /// <summary>
         /// Clean up the resources used by the form.
         /// </summary>
@@ -1068,8 +1109,9 @@ namespace Event.Forms
                 m_TimerDisplayUpdate = null;
                 m_ThreadPollEvent = null;
                 m_CommunicationInterface = null;
-                
+
                 #region - [Detach the event handler methods.] -
+
                 if (MainWindow != null)
                 {
                     MainWindow.MenuUpdated -= new EventHandler(SecurityChanged);
@@ -1081,6 +1123,7 @@ namespace Event.Forms
                 this.m_DataGridViewEventLog.SortCompare -= new System.Windows.Forms.DataGridViewSortCompareEventHandler(this.m_DataGridViewEventLog_SortCompare);
                 this.m_DataGridViewEventLog.Sorted -= new System.EventHandler(this.m_DataGridViewEventLog_Sorted);
                 this.Shown -= new System.EventHandler(this.FormViewEventLog_Shown);
+
                 #endregion - [Detach the event handler methods.] -
             }
             catch (Exception)
@@ -1092,10 +1135,13 @@ namespace Event.Forms
                 base.Cleanup(disposing);
             }
         }
+
         #endregion --- Cleanup ---
 
         #region --- Delegated Methods ---
+
         #region - [Form] -
+
         /// <summary>
         /// Event handler for the form <c>Shown</c> event. Set the size of the GroupBox controls.
         /// </summary>
@@ -1120,15 +1166,18 @@ namespace Event.Forms
             Cursor = Cursors.WaitCursor;
 
             #region - [Event Variables Panel] -
+
             m_PanelEventVariables.Width = m_EventVariableControlSize.Size.Width;
 
             m_LegendEventVariables.Location = new Point(m_EventVariableControlSize.Margin.Left, 0);
             m_LegendEventVariables.Size = new Size(m_EventVariableControlSize.Size.Width, m_EventVariableControlSize.Size.Height + m_EventVariableControlSize.Margin.Top
                                                    + m_EventVariableControlSize.Margin.Bottom);
             m_PanelEventVariableHeader.Padding = new Padding(0, 0, 0, m_EventVariableControlSize.Margin.Bottom + 3);
+
             #endregion - [Event Variables Panel] -
 
             #region - [DataGridView Panel] -
+
             // Get the combined width of all visible DataGridView columns.
             int dataGridViewWidth = 0;
             DataGridViewColumn dataGridViewColumn;
@@ -1142,6 +1191,7 @@ namespace Event.Forms
             }
 
             m_PanelDataGridViewEventLog.Width = dataGridViewWidth + MarginRightDataGridViewControl;
+
             #endregion - [DataGridView Panel] -
 
             // Only start polling and timer update if the communication interface has been specified.
@@ -1166,7 +1216,7 @@ namespace Event.Forms
             SetMenuEnabled(CommonConstants.KeyMenuItemFileOpen, false);
             SetMenuEnabled(CommonConstants.KeyMenuItemDiagnostics, false);
             SetMenuEnabled(CommonConstants.KeyMenuItemView, false);
-            // Intentionally comment out the following 2 lines of code. This is done in case a communications failure 
+            // Intentionally comment out the following 2 lines of code. This is done in case a communications failure
             // occurs while on the event log screen. We want the main buttons (Watch, Event, Test, Sys Info, etc.) to be grayed upon return
             // to the home screen
             //SetMenuEnabled(CommonConstants.KeyMenuItemView, false);
@@ -1213,10 +1263,13 @@ namespace Event.Forms
 
             base.FormPTU_Resize(sender, e);
         }
+
         #endregion - [Form] -
 
         #region - [Function Keys] -
+
         #region - [Escape] -
+
         /// <summary>
         /// Event handler for the escape key <c>Click</c> event. Close the form.
         /// </summary>
@@ -1238,12 +1291,14 @@ namespace Event.Forms
 
             Exit();
         }
-         #endregion - [Escape] -
+
+        #endregion - [Escape] -
 
         #region - [F1-Enumeration] -
+
         /// <summary>
         /// Event handler for the 'F1-Enumeration' button <c>Click</c> event. Toggles the flag that controls whether the enumerator variables are to have their values
-        /// displayed as the enumerated text value or the actual numeric value. True, displays the value as enumerated text; false, displays the values as numeric data. 
+        /// displayed as the enumerated text value or the actual numeric value. True, displays the value as enumerated text; false, displays the values as numeric data.
         /// </summary>
         /// <param name="sender">Reference to the object that raised the event.</param>
         /// <param name="e">Parameter passed from the object that raised the event.</param>
@@ -1274,9 +1329,11 @@ namespace Event.Forms
 
             Cursor = Cursors.Default;
         }
+
         #endregion - [F1-Enumeration] -
 
         #region - [F2-Print] -
+
         /// <summary>
         /// Event handler for the 'F2-Print' button <c>Click</c> event. Capture the window and save the image to the specified file.
         /// </summary>
@@ -1308,9 +1365,11 @@ namespace Event.Forms
             F2.Checked = false;
             Cursor = Cursors.Default;
         }
+
         #endregion - [F2-Print] -
 
         #region - [F3-Save] -
+
         /// <summary>
         /// Event handler for the 'F3-Save' function key <c>Click</c> event. Saves the event records to disk in XML format.
         /// </summary>
@@ -1351,11 +1410,13 @@ namespace Event.Forms
             Cursor = Cursors.Default;
             StartPolling();
         }
+
         #endregion - [F3-Save] -
 
         #region - [F4-Clear] -
+
         /// <summary>
-        /// Event handler for the 'F4-Clear' button <c>Click</c> event. Clear all events/faults contained in the active event log. This also erases any data logs 
+        /// Event handler for the 'F4-Clear' button <c>Click</c> event. Clear all events/faults contained in the active event log. This also erases any data logs
         /// associated with the event log.
         /// </summary>
         /// <param name="sender">Reference to the object that raised the event.</param>
@@ -1400,12 +1461,14 @@ namespace Event.Forms
             Cursor = Cursors.Default;
             StartPolling();
         }
+
         #endregion - [F4-Clear] -
 
         #region - [F5-Initialize] -
+
         /// <summary>
-        /// Event handler for the 'F5-Initialize' button <c>Click</c> event. Clear all event information stored on battery backed RAM for both the maintenance and 
-        /// engineering logs. This also clears both the cumulative history and recent history columns. This function is typically used to establish a zero event/fault 
+        /// Event handler for the 'F5-Initialize' button <c>Click</c> event. Clear all event information stored on battery backed RAM for both the maintenance and
+        /// engineering logs. This also clears both the cumulative history and recent history columns. This function is typically used to establish a zero event/fault
         /// reference base when a replacement VCU is installed in a car.
         /// </summary>
         /// <param name="sender">Reference to the object that raised the event.</param>
@@ -1450,11 +1513,13 @@ namespace Event.Forms
             Cursor = Cursors.Default;
             StartPolling();
         }
+
         #endregion - [F5-Initialize] -
 
         #region - [F6-Flags] -
+
         /// <summary>
-        /// Event handler for the 'F6-Flags' button <c>Click</c> event. Show the dialog box which allows the user to configure the event flags associated with the 
+        /// Event handler for the 'F6-Flags' button <c>Click</c> event. Show the dialog box which allows the user to configure the event flags associated with the
         /// current event log. This allows the user to define which event types are enabled and which will trigger the recording of a fault log.
         /// </summary>
         /// <param name="sender">Reference to the object that raised the event.</param>
@@ -1507,9 +1572,11 @@ namespace Event.Forms
                 StartPolling();
             }
         }
+
         #endregion - [F6-Flags] -
 
         #region - [F7-History] -
+
         /// <summary>
         /// Event handler for the 'F7-History' button <c>Click</c> event. Show the dialog box which displays the event history.
         /// </summary>
@@ -1564,9 +1631,11 @@ namespace Event.Forms
                 StartPolling();
             }
         }
+
         #endregion - [F7-History] -
 
         #region - [F8-Setup Stream] -
+
         /// <summary>
         /// Event handler for the 'F8-Setup Stream' button <c>Click</c> event.
         /// </summary>
@@ -1622,10 +1691,13 @@ namespace Event.Forms
                 StartPolling();
             }
         }
+
         #endregion - [F8-Setup Stream] -
+
         #endregion - [Function Keys] -
 
         #region - [ComboBox] -
+
         /// <summary>
         /// Event handler for the <c>ToolStripComboBox</c> control <c>SelectedIndexChanged</c> event. Download and display the selected event log.
         /// </summary>
@@ -1643,7 +1715,7 @@ namespace Event.Forms
             {
                 MainWindow.WriteStatusMessage(Resources.SMCommunicationFaultReadTimeout, Color.Red, Color.Black);
                 return;
-            }            
+            }
             Cursor = Cursors.WaitCursor;
             ClearControls();
             ClearEventMemory();
@@ -1690,14 +1762,16 @@ namespace Event.Forms
             }
 
             m_DataGridViewEventLog.Focus();
-            Pause = false;            
+            Pause = false;
             Cursor = Cursors.Default;
         }
+
         #endregion - [ComboBox] -
 
         #region - [Context Menu] -
+
         /// <summary>
-        /// Event handler for the <c>Click</c> event associated with the 'Show Fault Log' context menu. Displays the fault log associated with the selected event if 
+        /// Event handler for the <c>Click</c> event associated with the 'Show Fault Log' context menu. Displays the fault log associated with the selected event if
         /// it is available.
         /// </summary>
         /// <param name="sender">Reference to the object that raised the event.</param>
@@ -1758,11 +1832,13 @@ namespace Event.Forms
 
             Cursor = Cursors.Default;
         }
+
         #endregion - [Context Menu] -
 
         #region - [Timer Events] -
+
         /// <summary>
-        /// Called periodically by the System.Windows.Forms.Timer event. Update the event display. 
+        /// Called periodically by the System.Windows.Forms.Timer event. Update the event display.
         /// </summary>
         /// <param name="sender">Reference to the object that raised the event.</param>
         /// <param name="e">Parameter passed from the object that raised the event.</param>
@@ -1791,13 +1867,14 @@ namespace Event.Forms
             }
 
             #region - [Port Locked] -
+
             // ------------------------------------------
             // Check if the communication port is locked.
             // ------------------------------------------
             bool watchdogTrip = false;
             if (watchdog == m_Watchdog)
             {
-                // Don't assert the watchdog trip flag until the countdown has elapsed. 
+                // Don't assert the watchdog trip flag until the countdown has elapsed.
                 if (m_WatchdogTripCountdown <= 0)
                 {
                     watchdogTrip = true;
@@ -1845,9 +1922,11 @@ namespace Event.Forms
                 }
                 m_WatchdogTrip = watchdogTrip;
             }
+
             #endregion - [Port Locked] -
 
             #region - [ReadTimeout] -
+
             if (communicationFault != m_CommunicationFault)
             {
                 if (communicationFault == true)
@@ -1879,6 +1958,7 @@ namespace Event.Forms
                 }
                 m_CommunicationFault = communicationFault;
             }
+
             #endregion - [ReadTimeout] -
 
             // Update the status information.
@@ -1895,13 +1975,15 @@ namespace Event.Forms
                 m_PacketCount = packetCount;
             }
         }
+
         #endregion - [Timer Events] -
 
         #region - [DataGridView] -
+
         /// <summary>
         /// <para>Event handler for the <c>DataGridView</c> control <c>SortCompare</c> event.</para>
         /// <para>As part of the overall sort process, this event handler is called whenever a comparison is made between successive rows of the <c>DataGridView</c>
-        /// control. The final sort order is determined by: (a) the value passed to the SortResult property of the <c>DataGridViewSortCompareEventArgs</c> when the 
+        /// control. The final sort order is determined by: (a) the value passed to the SortResult property of the <c>DataGridViewSortCompareEventArgs</c> when the
         /// two rows, e.RowIndex1 and e.RowIndex2, are compared, and (b) the <c>ListSortDirection</c> property.</para>
         /// <para>The sort direction of the CarIdentifier, LogName and EventName fields is in the opposite direction to that of the DateTime field and the EventIndex
         /// field; the sort precedence is shown below, where [] is used to identify the key sort field.</para>
@@ -1921,7 +2003,7 @@ namespace Event.Forms
             }
 
             // Determine the key sort field i.e. the field defined by the [] in the sort criteria.
-            switch(e.Column.Index)
+            switch (e.Column.Index)
             {
                 case ColumnIndexDate:
                     // Sort the rows based upon the the date/time field.
@@ -1964,7 +2046,6 @@ namespace Event.Forms
                                         e.SortResult = String.Compare(m_DataGridViewEventLog.Rows[e.RowIndex2].Cells[ColumnIndexEventName].Value.ToString(),
                                                                       m_DataGridViewEventLog.Rows[e.RowIndex1].Cells[ColumnIndexEventName].Value.ToString());
                                     }
-
                                 }
                                 else
                                 {
@@ -2039,6 +2120,7 @@ namespace Event.Forms
                         statusMessage = Resources.SMSortOrderDateTimeAscending;
                     }
                     break;
+
                 default:
                     if (m_DataGridViewEventLog.SortOrder == SortOrder.Descending)
                     {
@@ -2051,7 +2133,7 @@ namespace Event.Forms
                     break;
             }
 
-            // This method may be called indirectly from the constructor before the MainWindow reference has been defined therefore check that the MainWindow 
+            // This method may be called indirectly from the constructor before the MainWindow reference has been defined therefore check that the MainWindow
             // reference has been defined before calling the MainWindow.WriteStatusMessage() method.
             if (MainWindow != null)
             {
@@ -2060,7 +2142,7 @@ namespace Event.Forms
         }
 
         /// <summary>
-        /// Event handler fo the <c>SelectionChanged</c> event associated with the <c>DataGridView</c> control. Display the event variables associated with the selected 
+        /// Event handler fo the <c>SelectionChanged</c> event associated with the <c>DataGridView</c> control. Display the event variables associated with the selected
         /// event.
         /// </summary>
         /// <param name="sender">Reference to the object that raised the event.</param>
@@ -2101,7 +2183,7 @@ namespace Event.Forms
         }
 
         /// <summary>
-        /// Event handler for the <c>CellContentDoubleClick</c> event associated with the event log <c>DataGridView</c> control. Depending upon which column has been 
+        /// Event handler for the <c>CellContentDoubleClick</c> event associated with the event log <c>DataGridView</c> control. Depending upon which column has been
         /// selected either: (1) retrieve and display the fault log data stream associated with the selected event or (2) show the event definition.
         /// </summary>
         /// <param name="sender">Reference to the object that raised the event.</param>
@@ -2151,6 +2233,7 @@ namespace Event.Forms
             Cursor = Cursors.Default;
             return;
         }
+
         #endregion - [DataGridView] -
 
         /// <summary>
@@ -2208,9 +2291,11 @@ namespace Event.Forms
                 throw new ArgumentOutOfRangeException("Security.SecurityLevelCurrent", "FormViewEventLog.Ctor()");
             }
         }
+
         #endregion --- Delegated Methods ---
 
         #region --- Methods ---
+
         /// <summary>
         /// Close the form cleanly. Simulates the user pressing the Exit button.
         /// </summary>
@@ -2225,7 +2310,7 @@ namespace Event.Forms
             Cursor.Current = Cursors.WaitCursor;
             Escape.Checked = true;
 
-            // It is possible that this method can be indirectly called by the constructor, therefore check that the MainWindow is defined before attempting to 
+            // It is possible that this method can be indirectly called by the constructor, therefore check that the MainWindow is defined before attempting to
             // write a status message.
             if (MainWindow != null)
             {
@@ -2299,7 +2384,17 @@ namespace Event.Forms
         {
             List<EventRecord> eventRecordList = new List<EventRecord>();
             bool communicationFault;
-            return GetEventLog(log, out communicationFault);
+
+            if (SetPauseAndWait(CommonConstants.TimeoutMsPauseFeedback) == false)
+            {
+                MainWindow.WriteStatusMessage(Resources.SMCommunicationFaultReadTimeout, Color.Red, Color.Black);
+                return eventRecordList;
+            }
+            StopPolling();
+            eventRecordList = GetEventLog(log, out communicationFault);
+            StartPolling();
+
+            return eventRecordList;
         }
 
         /// <summary>
@@ -2322,12 +2417,19 @@ namespace Event.Forms
                 return eventRecordList;
             }
 
-            // This method may be called indirectly from the constructor before the MainWindow reference has been defined therefore check that the MainWindow 
+            // This method may be called indirectly from the constructor before the MainWindow reference has been defined therefore check that the MainWindow
             // reference has been defined before calling the MainWindow.WriteStatusMessage() method.
             if (MainWindow != null)
             {
                 MainWindow.WriteStatusMessage(string.Format(Resources.SMEventLogRetrieve, log.Description));
             }
+
+            if (SetPauseAndWait(CommonConstants.TimeoutMsPauseFeedback) == false)
+            {
+                MainWindow.WriteStatusMessage(Resources.SMCommunicationFaultReadTimeout, Color.Red, Color.Black);
+                return eventRecordList;
+            }
+            StopPolling();
 
             uint oldIndex;
             try
@@ -2348,7 +2450,7 @@ namespace Event.Forms
             // Load the retrieved event records into the event record list.
             Cursor = Cursors.WaitCursor;
 
-            EventRecord eventRecord; 
+            EventRecord eventRecord;
             for (short eventIndex = 0; eventIndex < m_EventCount; eventIndex++)
             {
                 try
@@ -2376,6 +2478,8 @@ namespace Event.Forms
 
             // Sort the list of events, most recent event first. This ensures that the first row of the DataGridView is selected.
             eventRecordList.Sort(CompareByDateTimeDescending);
+
+            StartPolling();
 
             return eventRecordList;
         }
@@ -2427,7 +2531,6 @@ namespace Event.Forms
                 }
             }
 
-
             // Add the specified list of event records to the DataGridView control.
             EventRecord eventRecord;
             for (short eventIndex = 0; eventIndex < eventRecordList.Count; eventIndex++)
@@ -2459,7 +2562,6 @@ namespace Event.Forms
 
                 m_DataGridViewEventLog.Sort(m_DataGridViewEventLog.SortedColumn, listSortDirection);
             }
-
 
             m_DataGridViewEventLog.PerformLayout();
             m_DataGridViewEventLog.Update();
@@ -2493,6 +2595,7 @@ namespace Event.Forms
                 case EventLogSavedStatus.Saved:
                     MainWindow.LogStatus = m_EventLogSavedStatus;
                     break;
+
                 default:
                     MainWindow.LogStatus = EventLogSavedStatus.Unknown;
                     break;
@@ -2605,7 +2708,7 @@ namespace Event.Forms
                 DialogResult dialogResult = formGetStream.ShowDialog();
                 if (dialogResult == DialogResult.Abort)
                 {
-                    // This method may be called indirectly from the constructor before the MainWindow reference has been defined therefore check that the MainWindow 
+                    // This method may be called indirectly from the constructor before the MainWindow reference has been defined therefore check that the MainWindow
                     // reference has been defined before calling the MainWindow.WriteStatusMessage() method.
                     MessageBox.Show(string.Format(Resources.MBTGetStreamFailed, eventRecord.Description), Resources.MBCaptionError, MessageBoxButtons.OK,
                                                   MessageBoxIcon.Error);
@@ -2651,11 +2754,12 @@ namespace Event.Forms
         }
 
         #region - [EventVariables] -
+
         /// <summary>
-        /// Configure the specified event variable user controls. The individual controls are laid out on the panel similar to rows on a DataGridView control. The 
-        /// first entry in the list, eventVariableList[0], is positioned at row 0, the second at row 1 etc. To configure all event variables defined in the list specify 
-        /// a start index of zero, however, to configure only the event specific event variables specify a start index corresponding to index of the event variable 
-        /// list where the specific event variables start. Note, the user controls correponding to the event variables that are specific to the event will be 
+        /// Configure the specified event variable user controls. The individual controls are laid out on the panel similar to rows on a DataGridView control. The
+        /// first entry in the list, eventVariableList[0], is positioned at row 0, the second at row 1 etc. To configure all event variables defined in the list specify
+        /// a start index of zero, however, to configure only the event specific event variables specify a start index corresponding to index of the event variable
+        /// list where the specific event variables start. Note, the user controls correponding to the event variables that are specific to the event will be
         /// positioned starting at the row corresponding to the start index value.
         /// </summary>
         /// <param name="panel">The panel to which the event controls are to be added.</param>
@@ -2682,19 +2786,22 @@ namespace Event.Forms
                     case VariableType.Scalar:
                         eventVariableControl = new EventScalarControl();
                         break;
+
                     case VariableType.Enumerator:
                         eventVariableControl = new EventEnumeratorControl();
                         break;
+
                     case VariableType.Bitmask:
                         eventVariableControl = new EventBitmaskControl();
                         break;
+
                     default:
                         eventVariableControl = new EventControl();
                         break;
                 }
 
                 watchIdentifier = eventVariableList[index].Identifier;
-                
+
                 eventVariableControl.WidthVariableNameField = eventControlSize.WidthVariableNameField;
                 eventVariableControl.WidthValueField = eventControlSize.WidthValueField;
                 eventVariableControl.WidthUnitsField = eventControlSize.WidthUnitsField;
@@ -2748,7 +2855,7 @@ namespace Event.Forms
                 // Configure the user controls associated with the event specific event variables.
                 ConfigureControls(m_PanelEventVariableList, m_EventVariableControlSize, (short)m_CommonEventVariableCount, selectedEventRecord.EventVariableList);
             }
-            
+
             // --------------------------------------------------------------------------------------------------
             // Display the engineering values using the pre-configured user controls.
             // --------------------------------------------------------------------------------------------------
@@ -2759,12 +2866,15 @@ namespace Event.Forms
                     case VariableType.Scalar:
                         (m_PanelEventVariableList.Controls[index] as EventScalarControl).Value = selectedEventRecord.EventVariableList[index].ValueFromTarget;
                         break;
+
                     case VariableType.Enumerator:
                         (m_PanelEventVariableList.Controls[index] as EventEnumeratorControl).Value = selectedEventRecord.EventVariableList[index].ValueFromTarget;
                         break;
+
                     case VariableType.Bitmask:
                         (m_PanelEventVariableList.Controls[index] as EventBitmaskControl).Value = selectedEventRecord.EventVariableList[index].ValueFromTarget;
                         break;
+
                     default:
                         throw new ArgumentException(Resources.EMEventVariableTypeInvalid, "selectedEventRecord.EventVariableList[index].VariableType");
                 }
@@ -2783,14 +2893,14 @@ namespace Event.Forms
             // Prior to Rev. 1.16, the Find was implemented by using the event index associated with the selected row to find the record, as this was unique.
             // Following bug fix SNCR - R188 PTU [20 Mar 2015] Item 11, the event index field is no longer unique, therefore a search must be carried out to
             // match the following fields of DataGridViewRow:
-            string  dateTime        = (string)dataGridViewRow.Cells[ColumnIndexDateTime].Value;
-            short   eventIndex      = short.Parse((string)dataGridViewRow.Cells[ColumnIndexEventIndex].Value);
-            string  eventName       = (string)dataGridViewRow.Cells[ColumnIndexEventName].Value;
-            string  logIdentifier   = (string)dataGridViewRow.Cells[ColumnIndexLog].Value;
-            string  carIdentifier   = (string)dataGridViewRow.Cells[ColumnIndexCarIdentifier].Value;
+            string dateTime = (string)dataGridViewRow.Cells[ColumnIndexDateTime].Value;
+            short eventIndex = short.Parse((string)dataGridViewRow.Cells[ColumnIndexEventIndex].Value);
+            string eventName = (string)dataGridViewRow.Cells[ColumnIndexEventName].Value;
+            string logIdentifier = (string)dataGridViewRow.Cells[ColumnIndexLog].Value;
+            string carIdentifier = (string)dataGridViewRow.Cells[ColumnIndexCarIdentifier].Value;
 
             // Find the record that matches the field values for the selected row and use this record to display the associated event variables.
-            EventRecord selectedEventRecord = eventRecordList.Find(delegate(EventRecord eventRecord)
+            EventRecord selectedEventRecord = eventRecordList.Find(delegate (EventRecord eventRecord)
             {
                 if ((eventRecord.DateTime.ToString(FormatStringDateTime) == dateTime) &&
                     (eventRecord.EventIndex == eventIndex) &&
@@ -2807,10 +2917,12 @@ namespace Event.Forms
             });
 
             return selectedEventRecord;
-        }  
+        }
+
         #endregion - [EventVariables] -
 
         #region - [Sort] -
+
         /// <summary>
         /// <para>Sort the <c>DataGridView</c> rows by the specified key field in the order defined by the <c>ListSortDirection</c> property. This signature is
         /// used if the LogName column of the <c>DataGridView</c> is visible.</para>
@@ -2822,7 +2934,7 @@ namespace Event.Forms
         /// <para>The date/time field is always sorted in the opposite direction to the key field. Where the key field values are equal for both rows, the most
         /// recent event will be displayed first if the <c>ListSortDirection</c> is defined as <c>Ascending</c> and the oldest event will be displayed first if the
         /// <c>ListSortDirection</c> is defined as <c>Descending</c>.</para>
-        /// <para>Where both the key field and the date/time field values are equal, the rows will be sorted by the field corresponding to the fieldIndex1 
+        /// <para>Where both the key field and the date/time field values are equal, the rows will be sorted by the field corresponding to the fieldIndex1
         /// parameter followed by the field corresponding to the fieldIndex2 parameter.</para>
         /// </summary>
         /// <remarks>The fields defined by the parameters cannot include the date/time field of the <c>DataGridView</c> control.</remarks>
@@ -2844,7 +2956,7 @@ namespace Event.Forms
             e.SortResult = System.String.Compare(m_DataGridViewEventLog.Rows[e.RowIndex1].Cells[fieldIndexKey].Value.ToString(),
                                                  m_DataGridViewEventLog.Rows[e.RowIndex2].Cells[fieldIndexKey].Value.ToString());
 
-            // If the key field values are equal, sort the rows based upon the DateTime field. 
+            // If the key field values are equal, sort the rows based upon the DateTime field.
             if (e.SortResult == 0)
             {
                 // Switch the row order when comparing the date/time field values to ensure that the most recent event is displayed first if the ListSortDirection
@@ -2858,7 +2970,7 @@ namespace Event.Forms
                     e.SortResult = System.String.Compare(m_DataGridViewEventLog.Rows[e.RowIndex2].Cells[ColumnIndexEventIndex].Value.ToString(),
                                                          m_DataGridViewEventLog.Rows[e.RowIndex1].Cells[ColumnIndexEventIndex].Value.ToString());
 
-                    // If the date/time and EventIndex field values are equal, sort the rows based upon the fieldIndex1 field. 
+                    // If the date/time and EventIndex field values are equal, sort the rows based upon the fieldIndex1 field.
                     if (e.SortResult == 0)
                     {
                         e.SortResult = System.String.Compare(m_DataGridViewEventLog.Rows[e.RowIndex1].Cells[fieldIndex1].Value.ToString(),
@@ -2885,7 +2997,7 @@ namespace Event.Forms
         /// <para>The date/time field is always sorted in the opposite direction to the key field. Where the key field values are equal for both rows, the most
         /// recent event will be displayed first if the <c>ListSortDirection</c> is defined as <c>Ascending</c> and the oldest event will be displayed first if the
         /// <c>ListSortDirection</c> is defined as <c>Descending</c>.</para>
-        /// <para>Where both the key field and the date/time field values are equal the rows will be sorted by the field corresponding to the fieldIndex1 
+        /// <para>Where both the key field and the date/time field values are equal the rows will be sorted by the field corresponding to the fieldIndex1
         /// parameter.</para>
         /// </summary>
         /// <remarks>The fields defined by the parameters cannot include the date/time field of the <c>DataGridView</c> control.</remarks>
@@ -2905,7 +3017,7 @@ namespace Event.Forms
             e.SortResult = System.String.Compare(m_DataGridViewEventLog.Rows[e.RowIndex1].Cells[fieldIndexKey].Value.ToString(),
                                                  m_DataGridViewEventLog.Rows[e.RowIndex2].Cells[fieldIndexKey].Value.ToString());
 
-            // If the key field values are equal, sort the rows based upon the date/time field. 
+            // If the key field values are equal, sort the rows based upon the date/time field.
             if (e.SortResult == 0)
             {
                 // Switch the row order when comparing the date/time field values to ensure that the most recent event is displayed first if the ListSortDirection
@@ -2919,7 +3031,7 @@ namespace Event.Forms
                     e.SortResult = System.String.Compare(m_DataGridViewEventLog.Rows[e.RowIndex2].Cells[ColumnIndexEventIndex].Value.ToString(),
                                                          m_DataGridViewEventLog.Rows[e.RowIndex1].Cells[ColumnIndexEventIndex].Value.ToString());
 
-                    // If the date/time and the event index values are equal, sort the rows based upon the fieldIndex1 field. 
+                    // If the date/time and the event index values are equal, sort the rows based upon the fieldIndex1 field.
                     if (e.SortResult == 0)
                     {
                         e.SortResult = System.String.Compare(m_DataGridViewEventLog.Rows[e.RowIndex1].Cells[fieldIndex1].Value.ToString(),
@@ -2987,7 +3099,7 @@ namespace Event.Forms
                         result = String.Compare(eventRecordB.EventIndex.ToString(), eventRecordA.EventIndex.ToString());
 
                         // Although it is very improbable that both the date/time values and the event index values of two records are equal, if this is the case,
-                        // sort the records based upon the car identifier, in ascending order. 
+                        // sort the records based upon the car identifier, in ascending order.
                         if (result == 0)
                         {
                             result = String.Compare(eventRecordA.CarIdentifier, eventRecordB.CarIdentifier);
@@ -3035,11 +3147,13 @@ namespace Event.Forms
 
             return result;
         }
+
         #endregion - [Sort] -
 
         #region - [Save] -
+
         /// <summary>
-        /// Ask the user to specify the filename where the events are to be saved and call the SaveAll() method to save ALL events and associated data streams to disk. 
+        /// Ask the user to specify the filename where the events are to be saved and call the SaveAll() method to save ALL events and associated data streams to disk.
         /// If the specified file already exists the current events are appended to the existing data.
         /// </summary>
         /// <remarks>Polling for new events must be suspended before making a call to this method.</remarks>
@@ -3048,7 +3162,7 @@ namespace Event.Forms
         private bool Save()
         {
             bool userCancelled = false;
-           
+
             // Skip, if the Dispose() method has been called.
             if (IsDisposed)
             {
@@ -3056,8 +3170,8 @@ namespace Event.Forms
             }
 
             DateTime createdTime = DateTime.Now;
-            EventVariable _ev =null;
-            string truckType=string.Empty;
+            EventVariable _ev = null;
+            string truckType = string.Empty;
             foreach (EventRecord record in EventRecordList)
             {
                 _ev = record.EventVariableList.Find(x => x.Name.Equals("Truck Type"));
@@ -3109,7 +3223,7 @@ namespace Event.Forms
         }
 
         /// <summary>
-        /// Save the events associated with all event logs to the specified event log file structure, serialize this to the specified file in XML format and save 
+        /// Save the events associated with all event logs to the specified event log file structure, serialize this to the specified file in XML format and save
         /// the associated data streams to disk using their default filenames.
         /// </summary>
         /// <remarks>Polling for new events must be suspended before making a call to this method.</remarks>
@@ -3197,7 +3311,7 @@ namespace Event.Forms
 
             // Update the MainWindow StatusLabel.
             MainWindow.LogStatus = m_EventLogSavedStatus;
-            
+
             // Restore the current log.
             ClearControls();
             ClearEventMemory();
@@ -3350,7 +3464,7 @@ namespace Event.Forms
         }
 
         /// <summary>
-        /// Check whether the user has selected an existing file and, if so, ask the user whether the data is to be appended to the existing data or the file is 
+        /// Check whether the user has selected an existing file and, if so, ask the user whether the data is to be appended to the existing data or the file is
         /// to be over-written. If the data is to be appended to the existing data, load the existing data into the event log file structure.
         /// </summary>
         /// <param name="fullFilename">The fully qualified filename of the selected file.</param>
@@ -3424,13 +3538,15 @@ namespace Event.Forms
 
             return userCancelled;
         }
+
         #endregion - [Save] -
 
         #region - [Clear/Initialize] -
+
         /// <summary>
         /// Clear or initialize all event logs depending upon which function delegate is used.
         /// </summary>
-        /// <param name="function">A delegate for the function that is to be called. This will be a delegate for the function to clear the event logs or a delegate for 
+        /// <param name="function">A delegate for the function that is to be called. This will be a delegate for the function to clear the event logs or a delegate for
         /// the function to reset the event logs.</param>
         /// <remarks>Polling for new events must be suspended before making a call to this method.</remarks>
         /// <returns>A flag to indicate whether the user cancelled the operation. True, indicates that the operation was cancelled by the user; otherwise, false.
@@ -3562,7 +3678,7 @@ namespace Event.Forms
             }
             catch (Exception)
             {
-                // Do nothing, just ensure that an exception isn't thrown. 
+                // Do nothing, just ensure that an exception isn't thrown.
             }
         }
 
@@ -3613,14 +3729,16 @@ namespace Event.Forms
             {
                 EventRecordList.Clear();
             }
-            
+
             InformationLabel3.Text = 0.ToString();
 
             Update();
         }
+
         #endregion - [Clear/Initialize] -
 
         #region - [IPollTarget] -
+
         /// <summary>
         /// Start polling the target hardware for new events. If polling is already underway, no action ill be taken.
         /// </summary>
@@ -3642,7 +3760,7 @@ namespace Event.Forms
         }
 
         /// <summary>
-        /// Stop polling the target hardware. If polling has already been suspended, no action will be taken. 
+        /// Stop polling the target hardware. If polling has already been suspended, no action will be taken.
         /// </summary>
         /// <remarks>Ignores the request if the class used to poll the target hardware is null.</remarks>
         public void StopPolling()
@@ -3665,7 +3783,7 @@ namespace Event.Forms
         /// Set the Pause property and wait until the feedback signal is received or until the timeout has elapsed.
         /// </summary>
         /// <param name="timeoutMs">The timeout period, in ms.</param>
-        /// <returns>A flag to indicate whether the pause feedback signal was asserted within the specified timeout. True, if the pause feedback signal was asserted 
+        /// <returns>A flag to indicate whether the pause feedback signal was asserted within the specified timeout. True, if the pause feedback signal was asserted
         /// within the specified timeout; otherwise, false.</returns>
         public bool SetPauseAndWait(int timeoutMs)
         {
@@ -3703,11 +3821,15 @@ namespace Event.Forms
 
             return pauseFeedbackAsserted;
         }
+
         #endregion - [IPollTarget] -
+
         #endregion --- Methods ---
 
         #region --- Properties ---
+
         #region - [IPollTarget] -
+
         /// <summary>
         /// Gets or sets the flag that controls the polling of the target hardware. True, inhibits polling of the target hardware; otherwise, false, resumes polling.
         /// </summary>
@@ -3736,14 +3858,13 @@ namespace Event.Forms
                 {
                     return m_Pause;
                 }
-
             }
         }
 
         /// <summary>
-        /// Gets the feedback flag that indicates whether polling of the target hardware has been suspended.  
+        /// Gets the feedback flag that indicates whether polling of the target hardware has been suspended.
         /// </summary>
-        /// <remarks>This flag is asserted when the <c>ThreadPollWatch</c> class has entered the pause state, i.e. the current communication request is complete and 
+        /// <remarks>This flag is asserted when the <c>ThreadPollWatch</c> class has entered the pause state, i.e. the current communication request is complete and
         /// no further requests will be issued until the pause property has been cleared.</remarks>
         public bool PauseFeedback
         {
@@ -3761,6 +3882,7 @@ namespace Event.Forms
                 }
             }
         }
+
         #endregion - [IPollTarget] -
 
         /// <summary>
@@ -3777,7 +3899,7 @@ namespace Event.Forms
         /// </summary>
         internal List<EventRecord> EventRecordList
         {
-            get 
+            get
             {
                 lock (m_EventRecordList)
                 {
@@ -3799,7 +3921,7 @@ namespace Event.Forms
         /// </summary>
         internal short EventCount
         {
-            get 
+            get
             {
                 short result;
                 m_MutexEventCount.WaitOne(DefaultMutexWaitDurationMs, false);
@@ -3807,8 +3929,8 @@ namespace Event.Forms
                 m_MutexEventCount.ReleaseMutex();
                 return result;
             }
-            
-            set 
+
+            set
             {
                 m_MutexEventCount.WaitOne(DefaultMutexWaitDurationMs, false);
                 m_EventCount = value;
@@ -3876,6 +3998,7 @@ namespace Event.Forms
             get { return m_DataStream; }
             set { m_DataStream = value; }
         }
+
         #endregion --- Properties ---
     }
 }
